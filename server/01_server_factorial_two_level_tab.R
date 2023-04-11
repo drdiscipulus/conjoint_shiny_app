@@ -1,12 +1,12 @@
 # Set reactive values to handle input data, check status, and compute status
 # dat: makes the read dataset available and editable between functions
 # check and compute: are both used as triggers/blocks
-rv <- reactiveValues(generate_2 = NULL, dat_2 = NULL)
+rv1 <- reactiveValues(generate_2 = NULL, dat_2 = NULL)
 
 # Checks when the generate button is pressed
 observeEvent(input$generate_2, {
   # Set flag
-  rv$generate_2 <- "go"
+  rv1$generate_2 <- "go"
   
   if (input$design_2 == "Fractional") {
     
@@ -18,9 +18,9 @@ observeEvent(input$generate_2, {
     
     if (inherits(res, "try-error")) {
       shinyalert("Error!", "No Solution could be found", type = "error")
-      rv$dat_2 <- NULL
+      rv1$dat_2 <- NULL
     } else {
-      rv$dat_2 <- res
+      rv1$dat_2 <- res
     }
     
   } else if (input$design_2 == "Full") {
@@ -32,9 +32,9 @@ observeEvent(input$generate_2, {
     
     if (inherits(res, "try-error")) {
       shinyalert("Error!", "No Solution could be found", type = "error")
-      rv$dat_2 <- NULL
+      rv1$dat_2 <- NULL
     } else {
-      rv$dat_2 <- res
+      rv1$dat_2 <- res
     }
     
   }
@@ -47,10 +47,10 @@ observeEvent(input$generate_2, {
 # render table for 2-level fractional
 output$two_level_table <- renderReactable({
   # Proceed if not null
-  req(rv$generate_2, rv$dat_2)
+  req(rv1$generate_2, rv1$dat_2)
 
   # Create reactable
-  reactable(rv$dat_2,
+  reactable(rv1$dat_2,
     highlight = TRUE,
     striped = TRUE,
     bordered = TRUE,

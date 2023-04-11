@@ -1,7 +1,7 @@
 # Set reactive values to handle input data, check status, and compute status
 # dat: makes the read dataset available and editable between functions
 # check and compute: are both used as triggers/blocks
-rv2 <- reactiveValues(dat = NULL, check = NULL, compute = NULL, reset = FALSE)
+rv3 <- reactiveValues(dat = NULL, check = NULL, compute = NULL, reset = FALSE)
 
 
 # Download csv demo data set
@@ -35,15 +35,15 @@ output$download_xlsx <- downloadHandler(
 # Throws a warning or error if something is wrong with the file
 observeEvent(input$upload_data, {
   # Set check button to null when new data is uploaded
-  rv2$check <- NULL
+  rv3$check <- NULL
   # Set compute button to null when new data is uploaded
-  rv2$compute <- NULL
+  rv3$compute <- NULL
   # Set data to null when new data is uploaded
-  rv2$dat <- NULL
+  rv3$dat <- NULL
 
   # If an uploaded file exists
   if (!is.null(input$upload_data)) {
-    rv2$dat <- file_upload(input$upload_data)
+    rv3$dat <- file_upload(input$upload_data)
   }
 })
 
@@ -58,7 +58,7 @@ observeEvent(input$show_table, {
   } else if (!file.exists(input$upload_data$datapath)) {
     shinyalert("Error!", "Please upload a file first", type = "error")
     # Test if data exists
-  } else if (is.null(rv2$dat)) {
+  } else if (is.null(rv3$dat)) {
     shinyalert("Error!", "The upload cannot be displayed as a table", type = "error")
     # If data exists
   } else {
@@ -67,7 +67,7 @@ observeEvent(input$show_table, {
       title = "Data Set", size = "xl",
       "You can use the empty boxes to search columns for values",
       # Render that data as a reactable
-      renderReactable(reactable(rv2$dat,
+      renderReactable(reactable(rv3$dat,
         highlight = TRUE,
         striped = TRUE,
         bordered = TRUE,
@@ -96,7 +96,7 @@ observeEvent(input$show_class, {
   } else if (!file.exists(input$upload_data$datapath)) {
     shinyalert("Error!", "Please upload a file first", type = "error")
     # If no data exists
-  } else if (is.null(rv2$dat)) {
+  } else if (is.null(rv3$dat)) {
     shinyalert("Error!", "The upload cannot be displayed", type = "error")
     # If data exists
   } else {
@@ -104,7 +104,7 @@ observeEvent(input$show_class, {
     showModal(modalDialog(
       title = "Data Classes and Types", size = "xl",
       # Render that data as a reactable
-      renderReactable(reactable(class_type_overview(rv2$dat),
+      renderReactable(reactable(class_type_overview(rv3$dat),
         highlight = TRUE,
         striped = TRUE,
         bordered = TRUE,
@@ -133,88 +133,88 @@ observeEvent(input$check_data, {
     # If the check button is pressed, test if path of input file exists
   } else if (!file.exists(input$upload_data$datapath)) {
     shinyalert("Error!", "Please upload a file first", type = "error")
-  } else if (is.null(rv2$dat)) {
+  } else if (is.null(rv3$dat)) {
     shinyalert("Error!", "No file could be read", type = "error")
   }
 
   # Set rv$dat to null if there was an error or warning while reading the file
-  if (inherits(rv2$dat, "try-error")) {
+  if (inherits(rv3$dat, "try-error")) {
     shinyalert("Error!", "No file could be read", type = "error")
     rv$dat <- NULL
   }
 
   # Only proceed if dat is not null
-  req(rv2$dat)
+  req(rv3$dat)
 
   # Try to select all required columns
-  res <- column_checker(rv2$dat)
+  res <- column_checker(rv3$dat)
 
   # Check if it includes an error or not
   if (inherits(res, "try-error")) {
     shinyalert("Error!", "Required variables are missing", type = "error")
-    rv2$dat <- NULL
+    rv3$dat <- NULL
   } else {
-    rv2$dat <- res
+    rv3$dat <- res
   }
   #  Only proceed if dat is not null
-  req(rv2$dat)
+  req(rv3$dat)
 
   # Get number of attributes
-  att_num <- attribute_checker(rv2$dat)
+  att_num <- attribute_checker(rv3$dat)
 
   # Check if it includes an error or not
   if (inherits(res, "try-error")) {
     shinyalert("Error!", "Number of attributes can't be determined", type = "error")
-    rv2$dat <- NULL
+    rv3$dat <- NULL
   }
 
   # Only proceed if dat is not null
-  req(rv2$dat)
+  req(rv3$dat)
 
   # Check if there are two or more attributes
   if (att_num < 2) {
     shinyalert("Error!", "Less than two attributes", type = "error")
-    rv2$dat <- NULL
+    rv3$dat <- NULL
   }
 
   # Only proceed if dat is not null
-  req(rv2$dat)
+  req(rv3$dat)
 
   # Try to coerce data to numeric where required
-  res <- class_checker(rv2$dat)
+  res <- class_checker(rv3$dat)
 
   # Check if it includes an error or not
   if (inherits(res, "try-error")) {
     shinyalert("Error!", "Not all required variables are numeric or can't be coerced into numeric", type = "error")
-    rv2$dat <- NULL
+    rv3$dat <- NULL
   } else {
-    rv2$dat <- res
+    rv3$dat <- res
   }
 
   # Only proceed if dat is not null
-  req(rv2$dat)
+  req(rv3$dat)
 
   # Check if round only contains 1 and 2
-  round_test <- try(round_checker(rv2$dat), silent = TRUE)
+  round_test <- try(round_checker(rv3$dat), silent = TRUE)
 
   # Check if it includes an error or not
   if (inherits(round_test, "try-error")) {
     shinyalert("Error!", 'Variable "round" cannot be checked', type = "error")
-    rv2$dat <- NULL
+    rv3$dat <- NULL
   } else if (isFALSE(round_test)) {
     shinyalert("Error!", 'Variable "round" is not correctly specified', type = "error")
-    rv2$dat <- NULL
+    rv3$dat <- NULL
   }
 
   # Only proceed if dat is not null
-  req(rv2$dat)
+  req(rv3$dat)
 
   # In case of partial replications, drop non-replicated profiles
-  initial_dat <- rv2$dat |>
+  initial_dat <- rv3$dat |>
     filter(round == 1)
 
   # Filter for round 2
-  replication_dat <- rv2$dat |>
+  replication_dat <- rv3$dat |>
     filter(round == 2)
 
   # # Get all unique round 1 profiles
@@ -226,18 +226,18 @@ observeEvent(input$check_data, {
   # Check if both profile vectors are not identical
   if (!identical(initial_profiles, replication_profiles)) {
     # If they are not identical, remove profiles from first round data
-    rv2$dat <- rv2$dat |>
+    rv3$dat <- rv3$dat |>
       filter(profile %in% replication_profiles)
 
     # The data should be fine now, thus set status to okay
-    rv2$check <- "okay"
+    rv3$check <- "okay"
     # Notify user that things are probably okay and that profiles were dropped
     shinyalert("Success!", "The data seems to be okay but non-replicated profiles were removed", type = "success")
     #
     # If the profiles are identical/full replication...
   } else {
     # Set check status to okay
-    rv2$check <- "okay"
+    rv3$check <- "okay"
 
     # Notify the user that things are probably okay
     shinyalert("Success!", "The data seems to be okay", type = "success")
@@ -248,7 +248,7 @@ observeEvent(input$check_data, {
 # Observe if the compute button is pressed
 observeEvent(input$compute, {
   # Check if the check went well
-  if (is.null(rv2$check)) {
+  if (is.null(rv3$check)) {
     # Show a message if no data has been uploaded but the check button is pressed
     if (is.null(input$upload_data)) {
       shinyalert("Error!", "Please upload a file first", type = "error")
@@ -256,13 +256,13 @@ observeEvent(input$compute, {
       # If the check button is pressed, test if path of input file exists
     } else if (!file.exists(input$upload_data$datapath)) {
       shinyalert("Error!", "Please upload a file first", type = "error")
-    } else if (is.null(rv2$dat)) {
+    } else if (is.null(rv3$dat)) {
       shinyalert("Error!", "No file could be read", type = "error")
     } else {
       shinyalert("Error!", "You haven't checked your data or it failed the check", type = "error")
     }
   } else {
-    rv2$compute <- "go"
+    rv3$compute <- "go"
   }
 })
 
@@ -270,12 +270,12 @@ observeEvent(input$compute, {
 # Function to get the iccs per profile as a table
 icc_table <- reactive({
   # Check data availability and status
-  req(rv2$dat, rv2$check, rv2$compute)
+  req(rv3$dat, rv3$check, rv3$compute)
 
   # If compute is go
-  if (rv2$compute == "go") {
+  if (rv3$compute == "go") {
     # Call icc function
-    res <- rel_icc(rv2$dat)
+    res <- rel_icc(rv3$dat)
 
     # Return icc table
     return(res)
@@ -286,18 +286,18 @@ icc_table <- reactive({
 # Create a table with test-retest reliabilities per profile
 rel_table <- reactive({
   # Check data availability and status
-  req(rv2$dat, rv2$check, rv2$compute)
+  req(rv3$dat, rv3$check, rv3$compute)
 
   # If compute is go
-  if (rv2$compute == "go") {
+  if (rv3$compute == "go") {
     # Call correlation function
-    cor_res <- rel_cor(rv2$dat)
+    cor_res <- rel_cor(rv3$dat)
 
     # Get results from icc_table
     icc_res <- icc_table()
 
     # Create a data frame with correlation data
-    cor_res <- tibble(profile = unique(rv2$dat$profile), r = round(cor_res, 2))
+    cor_res <- tibble(profile = unique(rv3$dat$profile), r = round(cor_res, 2))
 
     # Join correation and icc data
     res <- left_join(cor_res, icc_res, by = "profile")
@@ -311,10 +311,10 @@ rel_table <- reactive({
 # Create a string with mean reliabilities to be shown under the reliability table
 rel_string <- reactive({
   # Check data availability and status
-  req(rv2$dat, rv2$check, rv2$compute)
+  req(rv3$dat, rv3$check, rv3$compute)
 
   # If compute is go
-  if (rv2$compute == "go") {
+  if (rv3$compute == "go") {
     # Get the reliability table and compute column means
     cor_mean <- round(mean(rel_table()$r), 2)
     icc_mean <- round(mean(rel_table()$ICC), 2)
@@ -331,10 +331,10 @@ rel_string <- reactive({
 # Create footer note for reliability table
 output$reliability_note <- renderText({
   # Check data availability and status
-  req(rv2$dat, rv2$check, rv2$compute)
+  req(rv3$dat, rv3$check, rv3$compute)
 
   # If compute is go
-  if (rv2$compute == "go") {
+  if (rv3$compute == "go") {
     # Set up the mean string
     res_text <- paste0("Note: Profiles = Respective profile number;
                        r = Pearson's r;
@@ -351,10 +351,10 @@ output$reliability_note <- renderText({
 # Render the reliability table with reactable
 output$reliability_table <- renderReactable({
   # Check data availability and status
-  req(rv2$dat, rv2$check, rv2$compute)
+  req(rv3$dat, rv3$check, rv3$compute)
 
   # If compute is go
-  if (rv2$compute == "go") {
+  if (rv3$compute == "go") {
     # Create reactable
     reactable(rel_table(),
       highlight = TRUE,
@@ -383,10 +383,10 @@ output$reliability_table <- renderReactable({
 # Render the mean reliabilities string as text output
 output$reliability_mean <- renderText({
   # Check data availability and status
-  req(rv2$dat, rv2$check, rv2$compute)
+  req(rv3$dat, rv3$check, rv3$compute)
 
   # If compute is go
-  if (rv2$compute == "go") {
+  if (rv3$compute == "go") {
     # Output string as text
     rel_string()
   }
@@ -396,12 +396,12 @@ output$reliability_mean <- renderText({
 # Call the function to compute slope difference tests
 slope_difference_res <- reactive({
   # Check data availability and status
-  req(rv2$dat, rv2$check, rv2$compute)
+  req(rv3$dat, rv3$check, rv3$compute)
 
   # If compute is go
-  if (rv2$compute == "go") {
+  if (rv3$compute == "go") {
     # Get slope differences
-    res <- slope_difference(rv2$dat)
+    res <- slope_difference(rv3$dat)
   }
 }) |> bindEvent(input$compute)
 
@@ -409,10 +409,10 @@ slope_difference_res <- reactive({
 # Render slope difference table as a reactable
 output$slope_diff_table <- renderReactable({
   # Check data availability and status
-  req(rv2$dat, rv2$check, rv2$compute)
+  req(rv3$dat, rv3$check, rv3$compute)
 
   # If compute is go
-  if (rv2$compute == "go") {
+  if (rv3$compute == "go") {
     # Setup the reactable
     reactable(slope_difference_res(),
       highlight = TRUE,
@@ -447,10 +447,10 @@ output$slope_diff_table <- renderReactable({
 # Create footer note for reliability table
 output$slope_note <- renderText({
   # Check data availability and status
-  req(rv2$dat, rv2$check, rv2$compute)
+  req(rv3$dat, rv3$check, rv3$compute)
 
   # If compute is go
-  if (rv2$compute == "go") {
+  if (rv3$compute == "go") {
     # Set up the mean string
     res_text <- paste0("Note: 1 designates the first round of responses and 2 the replication round;
                        IV = Independent variables, these are the attributes;
@@ -471,12 +471,12 @@ output$slope_note <- renderText({
 # Call function to compute a pooled regression model
 pooled_reg_data <- reactive({
   # Check data availability and status
-  req(rv2$dat, rv2$check, rv2$compute)
+  req(rv3$dat, rv3$check, rv3$compute)
 
   # If compute is go
-  if (rv2$compute == "go") {
+  if (rv3$compute == "go") {
     # Compute pooled regression model
-    res <- pooled_regression(rv2$dat)
+    res <- pooled_regression(rv3$dat)
   }
 }) |> bindEvent(input$compute)
 
@@ -484,10 +484,10 @@ pooled_reg_data <- reactive({
 # Render the pooled regression table as a reactable
 output$pooled_reg_table <- renderReactable({
   # Check data availability and status
-  req(rv2$dat, rv2$check, rv2$compute)
+  req(rv3$dat, rv3$check, rv3$compute)
 
   # If compute is go
-  if (rv2$compute == "go") {
+  if (rv3$compute == "go") {
     # Set up the reactable
     reactable(pooled_reg_data()$dat,
       highlight = TRUE,
@@ -508,10 +508,10 @@ output$pooled_reg_table <- renderReactable({
 # Render the model fit of the pooled regression model as a text output
 output$regression_fit <- renderText({
   # Check data availability and status
-  req(rv2$dat, rv2$check, rv2$compute)
+  req(rv3$dat, rv3$check, rv3$compute)
 
   # If compute is go
-  if (rv2$compute == "go") {
+  if (rv3$compute == "go") {
     # Output model fit as text
     pooled_reg_data()$fit
   }
@@ -521,10 +521,10 @@ output$regression_fit <- renderText({
 # Create footer note for reliability table
 output$regression_note <- renderText({
   # Check data availability and status
-  req(rv2$dat, rv2$check, rv2$compute)
+  req(rv3$dat, rv3$check, rv3$compute)
 
   # If compute is go
-  if (rv2$compute == "go") {
+  if (rv3$compute == "go") {
     # Set up the mean string
     res_text <- paste0("Note: Coefficient = Variable names/the attributes;
                        Beta = Unstandardized regression coefficient;
@@ -541,12 +541,12 @@ output$regression_note <- renderText({
 # Create a violin plot with plotly and render and output it
 output$violin <- renderPlotly({
   # Check data availability and status
-  req(rv2$dat, rv2$check, rv2$compute)
+  req(rv3$dat, rv3$check, rv3$compute)
 
   # If compute is go
-  if (rv2$compute == "go") {
+  if (rv3$compute == "go") {
     # Compute response deviations between round 1 and 2
-    df_dev <- compute_deviation(dat = rv2$dat)
+    df_dev <- compute_deviation(dat = rv3$dat)
 
     # Pivot the deviation data from wide to long
     df_dev <- wide_to_long(dat = df_dev)
@@ -554,7 +554,7 @@ output$violin <- renderPlotly({
     # Create the violin plot
     violin_plot(
       dat = df_dev,
-      num_profiles = length(unique(rv2$dat$profile)),
+      num_profiles = length(unique(rv3$dat$profile)),
       plot_height = 370,
       plot_name = "violin_plot"
     )
@@ -565,10 +565,10 @@ output$violin <- renderPlotly({
 # Create an icc summary plot and render it as a plotly plot
 output$icc_plot <- renderPlotly({
   # Check data availability and status
-  req(rv2$dat, rv2$check, rv2$compute)
+  req(rv3$dat, rv3$check, rv3$compute)
 
   # If compute is go
-  if (rv2$compute == "go") {
+  if (rv3$compute == "go") {
     # Get icc table from function
     icc_res <- icc_table()
 
@@ -595,10 +595,10 @@ output$icc_plot <- renderPlotly({
 # Create a slope difference plot and render it as a potly plot
 output$slope_plot <- renderPlotly({
   # Check data availability and status
-  req(rv2$dat, rv2$check, rv2$compute)
+  req(rv3$dat, rv3$check, rv3$compute)
 
   # If compute is go
-  if (rv2$compute == "go") {
+  if (rv3$compute == "go") {
     # Get slope difference table from function
     slope_res <- slope_difference_res()
 
@@ -645,7 +645,7 @@ observeEvent(input$reset, {
       confirmButtonCol = "#df382c",
       cancelButtonText = "Cancel",
       callbackR = function(x) {
-        rv2$reset <- x
+        rv3$reset <- x
       }
     )
   }
@@ -655,7 +655,7 @@ observeEvent(input$reset, {
 # Delete uploaded data and reset states
 observe({
   # If deletion alert is true
-  if (isTRUE(rv2$reset)) {
+  if (isTRUE(rv3$reset)) {
     # Check if input path exists, delete it if this is the case
     if (file.exists(input$upload_data$datapath)) {
       file.remove(input$upload_data$datapath)
@@ -664,9 +664,9 @@ observe({
     # Reset upload button
     shinyjs::reset("upload_data")
     # Reset states
-    rv2$dat <- NULL
-    rv2$check <- NULL
-    rv2$compute <- NULL
-    rv2$reset <- FALSE
+    rv3$dat <- NULL
+    rv3$check <- NULL
+    rv3$compute <- NULL
+    rv3$reset <- FALSE
   }
 })
