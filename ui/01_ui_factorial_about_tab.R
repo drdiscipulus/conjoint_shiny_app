@@ -23,9 +23,9 @@ tabPanel(
         tags$li("Select whether you want a full or fractional factorial design"),
         tags$li("The effects selection is only relevant when you choose a fractional design"),
         tags$ul(
-          tags$li("Main Effects: Requests a resolution III design"),
-          tags$li("Two-Way: Requestes a resolution IV design"),
-          tags$li("Three-Way: Requests a resolution VI design"),
+          tags$li("Main Effects: Request a resolution III design"),
+          tags$li("Two-Way: Request a resolution IV design"),
+          tags$li("Three-Way: Request a resolution VI design"),
           tags$li(tags$a(href = "https://en.wikipedia.org/wiki/Fractional_factorial_design", "Read more about factorial designs and resolutions", target = "_blank")),
           tags$li("Note: "),
           tags$ol(
@@ -50,20 +50,23 @@ tabPanel(
         tags$li("This procedure relies on the DoE.base package and is more complex:"),
         tags$ul(
           tags$li("The same fac.design function is called when a full design is requested"),
-          tags$li('If a fractional main effects only design is requested: oa.design(nlevels = attributes, columns = "min3")'),
+          tags$li("The oa.design function searches a list of orthogonal arrays for the smallest array representing the specified number of attributes and levels"), 
+          tags$li("If an array can map more attributes than needed, an automatic column selection is made so that the number of profiles for the main-effects model is minimal (resolution III)"),
+          tags$li('The corresponding function call for main-effect models: oa.design(nlevels = attributes, columns = "min3")'),
           tags$li("If a fractional two-way design is requested, an interative procedure is used (use with caution!):"),
           tags$ol(
-            tags$li('Identify suitable resolution III designs: show.oas(nlevels = attributes, regular = "all", GRgt3 = "all", Rgt3 = FALSE)'),
             tags$li("Some resolution III arrays can accomodate more attributes than requested - a subset of columns could result in a resolution IV design"),
-            tags$li('These candidates are screened for resolution IV results: oa.design(id, nlevels = attributes, columns = "min3")'),
-            tags$li('If no resolution IV option was found, resolution IV arrays are searched analogously: show.oas(nlevels = attributes, regular = "all", GRgt3 = "all", Rgt3 = TRUE)'),
+            tags$li('Identify suitable resolution III arrays: show.oas(nlevels = attributes, regular = "all", GRgt3 = "all", Rgt3 = FALSE)'),
+            tags$li('These arrays are screened for resolution IV results: oa.design(id, nlevels = attributes, columns = "min3")'),
+            tags$li('If no resolution IV result was found, resolution IV arrays are searched analogously: show.oas(nlevels = attributes, regular = "all", GRgt3 = "all", Rgt3 = TRUE)'),
+            tags$li("However, these resolution IV arrays may be larger than necessary for the given attribute and level combination")
           )
         )
       ),
       tags$h4("Disclaimer:"),
       tags$ul(
         tags$li("Please always evaluate the suitability of the generated designs to make sure they fit your requirements BEFORE you start your experiment"),
-        tags$li("The use of the app is at your own risk"),
+        tags$li("Use the app at your own risk"),
       )
     )
   )
