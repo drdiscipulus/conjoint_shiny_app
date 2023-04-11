@@ -8,7 +8,7 @@ tabPanel(
     sidebarPanel(
       # Styling and positioning
       width = 2,
-      style = "height: 900px; background: #F0F0F0; margin-left: 0px; margin-right: -10px; margin-top:-10px",
+      style = "height: 899px; background: #F0F0F0; margin-left: 0px; margin-right: -10px; margin-top:-10px",
       h5("1. Upload", style = "margin-top: 0rem"),
       # Upload .csv file handling
       fileInput("upload_data", ".csv or .xlsx",
