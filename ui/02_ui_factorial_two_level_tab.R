@@ -13,10 +13,11 @@ tabPanel(
       sliderInput("attributes_2", "Number of Attributes:",
         min = 2, max = 10, value = 5
       ),
-      selectInput("design_2", 
-                  label = "Design", 
-                  choices = list("Full", "Fractional"), 
-                  selected = "Fractional"),
+      selectInput("design_2",
+        label = "Design",
+        choices = list("Full", "Fractional"),
+        selected = "Fractional"
+      ),
       selectInput("effects_2",
         label = "Effects",
         choices = list("Main Effects" = "main_effects", "Two-Way" = "two-way", "Three-Way" = "three-way"),

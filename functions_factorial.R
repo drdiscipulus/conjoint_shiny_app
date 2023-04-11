@@ -146,10 +146,10 @@ get_n_level_fractional <- function(attributes, effects, type) {
 
   if (effects == "main_effects") {
     res <- oa.design(nlevels = attributes, columns = "min3", factor.names = att_names)
-    
+
     # Create profile column
     profiles <- tibble(Profiles = 1:nrow(res))
-    
+
     # Merge
     res <- cbind(profiles, res)
   }
@@ -190,13 +190,12 @@ get_n_level_fractional <- function(attributes, effects, type) {
 
       # If the resolution is four or better - break
       if (resolution >= 4) {
-        
         # Create profile column
         profiles <- tibble(Profiles = 1:nrow(res))
-        
+
         # Merge
         res <- cbind(profiles, res)
-        
+
         break
       }
 
@@ -239,13 +238,12 @@ get_n_level_fractional <- function(attributes, effects, type) {
 
         # Break if there is a solution
         if (resolution >= 4) {
-          
           # Create profile column
           profiles <- tibble(Profiles = 1:nrow(res))
-          
+
           # Merge
           res <- cbind(profiles, res)
-          
+
           break
         }
 
@@ -256,5 +254,4 @@ get_n_level_fractional <- function(attributes, effects, type) {
 
   # Return
   return(res)
-
 }

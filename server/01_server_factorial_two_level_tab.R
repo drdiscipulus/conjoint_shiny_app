@@ -7,40 +7,33 @@ rv1 <- reactiveValues(generate_2 = NULL, dat_2 = NULL)
 observeEvent(input$generate_2, {
   # Set flag
   rv1$generate_2 <- "go"
-  
+
   if (input$design_2 == "Fractional") {
-    
     # Try to obtain result
     res <- try(get_two_level_fractional(
       attributes = input$attributes_2,
       effects = input$effects_2
     ))
-    
+
     if (inherits(res, "try-error")) {
       shinyalert("Error!", "No Solution could be found", type = "error")
       rv1$dat_2 <- NULL
     } else {
       rv1$dat_2 <- res
     }
-    
   } else if (input$design_2 == "Full") {
-    
     # Try to obtain result
     res <- try(get_two_level_full(
       attributes = input$attributes_2
     ))
-    
+
     if (inherits(res, "try-error")) {
       shinyalert("Error!", "No Solution could be found", type = "error")
       rv1$dat_2 <- NULL
     } else {
       rv1$dat_2 <- res
     }
-    
   }
-  
-  
-
 })
 
 

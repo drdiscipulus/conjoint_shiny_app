@@ -12,14 +12,14 @@ file_upload <- function(input) {
     # Try to read file
     res <- try(
       # Read .csv file
-      vroom::vroom(filepath, na = c("","NA")),
+      vroom::vroom(filepath, na = c("", "NA")),
       silent = TRUE
     )
   } else if (extension == "xlsx") {
     # Try to read file
     res <- try(
       # Read .xlsx file
-      openxlsx::read.xlsx(filepath, na.strings = c("","NA"))
+      openxlsx::read.xlsx(filepath, na.strings = c("", "NA"))
     )
   } else {
     res <- NULL
@@ -35,8 +35,9 @@ column_checker <- function(dat) {
   # Try to select all required columns
   res <- try(
     dat |>
-      select(respondent, round, profile, dv, starts_with("att_")) |> 
-      rename_with(tolower), silent = TRUE
+      select(respondent, round, profile, dv, starts_with("att_")) |>
+      rename_with(tolower),
+    silent = TRUE
   )
 
   # Return
@@ -97,17 +98,18 @@ round_checker <- function(dat) {
 
 # Function to get type and class info on data
 class_type_overview <- function(dat) {
-  
   # Get information
   var_names <- colnames(dat)
-  class_info <- sapply(dat, class)  
+  class_info <- sapply(dat, class)
   type_info <- sapply(dat, typeof)
-  
+
   # Create table
-  res <- tibble(Variable = var_names,
-                Class = class_info,
-                Type = type_info)
-  
+  res <- tibble(
+    Variable = var_names,
+    Class = class_info,
+    Type = type_info
+  )
+
   # Return table
   return(res)
 }

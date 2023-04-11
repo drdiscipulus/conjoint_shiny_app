@@ -13,6 +13,7 @@ tabPanel(
           tags$li(tags$a(href = "https://cran.r-project.org/web/packages/FrF2/index.html", "FrF2: Fractional Factorial Designs with 2-Level Factors", target = "_blank")),
           tags$li(tags$a(href = "https://cran.r-project.org/web/packages/DoE.base/index.html", "DoE.base: Full Factorials, Orthogonal Arrays and Base Utilities for DoE Packages", target = "_blank")),
         ),
+        tags$li(tags$a(href = "https://www.itl.nist.gov/div898/handbook/pri/section3/pri333.htm", 'The "Engineering Statistics Handbook" provides an easy-to-understand introduction to factorial designs', target = "_blank")),
       ),
       tags$h4("How to use it"),
       tags$h5("Two-Level factorial designs"),

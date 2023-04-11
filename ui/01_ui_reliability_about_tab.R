@@ -66,7 +66,7 @@ tabPanel(
       tags$br(),
       "All code and data used in this publication is available on the Open Science Framework:",
       tags$a(href = "https://osf.io/qpzhf/?view_only=61cd1571ec23440da1974756002a819e", "Link to Repository", target = "_blank"),
-      tags$br(), 
+      tags$br(),
       tags$h4("Profile pages"),
       tags$ul(
         tags$li(tags$a(href = "https://www.eship.uni-bayreuth.de/de/team/schueler_jens/index.php", "Jens Schüler", target = "_blank")),
