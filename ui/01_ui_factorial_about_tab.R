@@ -1,8 +1,7 @@
-# about panel that explains everything
+# About panel that explains everything
 tabPanel(
   title = "Factorial Designs",
   fluidRow(
-    # plain text can be added in simple quotation marks, more refined option require html tags
     tags$div(
       tags$h4("Purpose"),
       tags$ul(
