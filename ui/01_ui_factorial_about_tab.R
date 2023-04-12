@@ -17,6 +17,7 @@ tabPanel(
         tags$ul(
           tags$li(tags$a(href = "https://wires.onlinelibrary.wiley.com/doi/abs/10.1002/wics.27", 'Overview: Fractional factorial design', target = "_blank")),
           tags$li(tags$a(href = "https://www.itl.nist.gov/div898/handbook/pri/section3/pri333.htm", 'NIST/SEMATECH e-Handbook of Statistical Methods', target = "_blank")),
+          tags$li(tags$a(href = "https://en.wikipedia.org/wiki/Fractional_factorial_design", "Wikipedia article on fractional designs and resolutions", target = "_blank")),
         ),
       ),
       tags$h4("How to use the application"),
@@ -30,7 +31,6 @@ tabPanel(
           tags$li("Main Effects: Request a resolution III design"),
           tags$li("Two-Way: Request a resolution IV design"),
 #          tags$li("Three-Way: Request a resolution VI design"),
-          tags$li(tags$a(href = "https://en.wikipedia.org/wiki/Fractional_factorial_design", "Read more about factorial designs and resolutions", target = "_blank")),
           tags$li("Note: "),
           tags$ol(
             tags$li('Select "Main Effects" if you do not plan to manipulate a moderator variable in your experiment'),
