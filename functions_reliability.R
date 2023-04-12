@@ -516,6 +516,9 @@ violin_plot <- function(dat, num_profiles, plot_height, plot_name) {
 
 # This function creates an icc effect plot
 icc_effect_plot <- function(dat) {
+  dat <- dat |>
+    mutate(profile = paste0("Profile ", profile))
+
   # Create the plot
   plot <- ggplot(
     data = dat,
@@ -527,14 +530,21 @@ icc_effect_plot <- function(dat) {
     )
   ) +
     geom_pointrange() +
-    geom_text(aes(label = ICC), nudge_x = 0.28) +
+    geom_text(aes(label = ICC), family = "Times New Roman", nudge_x = 0.28, size = 5) +
     labs(
       title = paste0("ICC Values -- Profiles 1-", length(dat$profile)),
       subtitle = "95% Confidence Interval As Vertical Line",
       x = NULL,
       y = "Intraclass Correlation Coefficients"
     ) +
-    theme_minimal()
+    theme_minimal() +
+    theme(
+      text = element_text(family = "Times New Roman"),
+      plot.title = element_text(face = "bold", size = 16),
+      axis.title.y = element_text(size = 16, face = "bold"),
+      axis.text.x = element_text(size = 14, color = "black"),
+      axis.text.y = element_text(size = 14, color = "black")
+    )
 
   # Return plot
   return(plot)
@@ -547,7 +557,7 @@ slope_effect_plot <- function(dat) {
   # Create the plot
   plot <- ggplot(data = dat, aes(x = iv, y = test_statistic)) +
     geom_point() +
-    geom_text(aes(label = test_statistic), nudge_x = 0.25) +
+    geom_text(aes(label = test_statistic), family = "Times New Roman", nudge_x = 0.25, size = 5) +
     coord_flip() +
     geom_hline(yintercept = 0, size = 2) +
     labs(
@@ -556,7 +566,15 @@ slope_effect_plot <- function(dat) {
       y = "Test Statistic",
       x = "Independent Variables"
     ) +
-    theme_minimal()
+    theme_minimal() +
+    theme(
+      text = element_text(family = "Times New Roman"),
+      plot.title = element_text(face = "bold", size = 16),
+      axis.title.x = element_text(size = 16, face = "bold"),
+      axis.title.y = element_text(size = 16, face = "bold"),
+      axis.text.x = element_text(size = 14, color = "black"),
+      axis.text.y = element_text(size = 14, color = "black")
+    )
 
   # Return plot
   return(plot)
