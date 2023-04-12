@@ -6,7 +6,7 @@ get_n_level_factorial <- reactive({
   
   # Throw error if there are more than 6 attributes
   if (length(attributes) > 7) {
-    shinyalert("Error!", "No more than 6 attributes", type = "error")
+    shinyalert("Error!", "No more than 7 attributes", type = "error")
     
     # No more than 4 levels allowed
   } else if (max(attributes) > 4) {

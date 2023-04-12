@@ -13,7 +13,11 @@ tabPanel(
           tags$li(tags$a(href = "https://cran.r-project.org/web/packages/FrF2/index.html", "FrF2: Fractional Factorial Designs with 2-Level Factors", target = "_blank")),
           tags$li(tags$a(href = "https://cran.r-project.org/web/packages/DoE.base/index.html", "DoE.base: Full Factorials, Orthogonal Arrays and Base Utilities for DoE Packages", target = "_blank")),
         ),
-        tags$li(tags$a(href = "https://www.itl.nist.gov/div898/handbook/pri/section3/pri333.htm", 'The "Engineering Statistics Handbook" provides an easy-to-understand introduction to factorial designs', target = "_blank")),
+        tags$li("Easy-to-understand introductions to the topic:"),
+        tags$ul(
+          tags$li(tags$a(href = "https://wires.onlinelibrary.wiley.com/doi/abs/10.1002/wics.27", 'Overview: Fractional factorial design', target = "_blank")),
+          tags$li(tags$a(href = "https://www.itl.nist.gov/div898/handbook/pri/section3/pri333.htm", 'NIST/SEMATECH e-Handbook of Statistical Methods', target = "_blank")),
+        ),
       ),
       tags$h4("How to use it"),
       tags$h5("Two-Level factorial designs"),
@@ -25,13 +29,13 @@ tabPanel(
         tags$ul(
           tags$li("Main Effects: Request a resolution III design"),
           tags$li("Two-Way: Request a resolution IV design"),
-          tags$li("Three-Way: Request a resolution VI design"),
+#          tags$li("Three-Way: Request a resolution VI design"),
           tags$li(tags$a(href = "https://en.wikipedia.org/wiki/Fractional_factorial_design", "Read more about factorial designs and resolutions", target = "_blank")),
           tags$li("Note: "),
           tags$ol(
             tags$li('Select "Main Effects" if you do not plan to manipulate a moderator variable in your experiment'),
             tags$li('Select "Two-Way" if you manipulate one or more moderators'),
-            tags$li('Select "Three-Way" if your experiment includes a manipulated three-way interaction .e.g., moderated moderation'),
+#            tags$li('Select "Three-Way" if your experiment includes a manipulated three-way interaction .e.g., moderated moderation'),
           )
         ),
         tags$li("This information is used to call functions of the DoE.base and FrF2 package: "),

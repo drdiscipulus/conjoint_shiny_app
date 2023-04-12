@@ -20,7 +20,8 @@ tabPanel(
       ),
       selectInput("effects_2",
         label = "Effects",
-        choices = list("Main Effects" = "main_effects", "Two-Way" = "two-way", "Three-Way" = "three-way"),
+        choices = list("Main Effects" = "main_effects", "Two-Way" = "two-way"),
+#        choices = list("Main Effects" = "main_effects", "Two-Way" = "two-way", "Three-Way" = "three-way"),
         selected = "main_effects"
       ),
       actionButton("generate_2", "Generate", class = "btn-primary", width = "100%", icon = icon("cog")),

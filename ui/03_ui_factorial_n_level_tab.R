@@ -10,7 +10,7 @@ tabPanel(
       width = 2,
       style = "height: 900px; background: #F0F0F0; margin-left: 0px; margin-right: -10px; margin-top:-10px",
       h4("Define", style = "margin-top: 0rem"),
-      "No more than 6 attributes and 4 levels are supported",
+      "No more than 7 attributes and 4 levels are supported",
       textInput("attributes_n", "Attributes:", "2,2,3,3"),
       selectInput("design_n", label = "Design", choices = list("Full", "Fractional"), selected = "Fractional"),
       selectInput("effects_n",
