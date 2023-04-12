@@ -15,7 +15,7 @@ tabPanel(
                 using conjoint data"),
         tags$li("This app makes our workflow accessible and easy to use with just one upload and two clicks"),
       ),
-      tags$h4("How to use it"),
+      tags$h4("How to use the application"),
       tags$ul(
         tags$li("You can upload your data as a .csv or .xlsx file. Other file formats are not accepted"),
         tags$li("The data must be in long format, contain certain columns with specific values and data classes"),
