@@ -83,3 +83,16 @@ output$n_level_table <- renderReactable({
     )
   )
 }) |> bindEvent(input$generate_n)
+
+
+# Render the ui
+output$n_level <- renderUI({
+  
+  req(get_n_level_factorial())
+  
+  wellPanel(
+    style = "padding: 0.7rem; background: #F0F0F0",
+    # Define top row
+    reactableOutput("n_level_table") %>% withSpinner(type = 6, color = "#009260")
+  )
+}) |> bindEvent(input$generate_n)

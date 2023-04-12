@@ -453,7 +453,7 @@ wide_to_long <- function(dat) {
 
 # This function requires a data set, the number of profiles and the
 # height of the plot, and its name, as inputs and creates a violin plot.
-violin_plot <- function(dat, num_profiles, plot_height, plot_name) {
+violin_plot <- function(dat, num_profiles, plot_name) {
   # Profile names as factor with ordered levels to preserve order
   dat$profile <- factor(dat$profile, levels = unique(dat$profile))
   # Custom text styling for axis labels
@@ -471,7 +471,6 @@ violin_plot <- function(dat, num_profiles, plot_height, plot_name) {
   )
   # Create violin plot with plotly
   p <- plot_ly(dat,
-    height = plot_height,
     y = ~deviation,
     color = ~profile,
     type = "violin",
@@ -516,6 +515,8 @@ violin_plot <- function(dat, num_profiles, plot_height, plot_name) {
 
 # This function creates an icc effect plot
 icc_effect_plot <- function(dat) {
+  
+  # Create x-axis tick labels
   dat <- dat |>
     mutate(profile = paste0("Profile ", profile))
 
@@ -550,6 +551,7 @@ icc_effect_plot <- function(dat) {
   return(plot)
 }
 
+
 ## Slope difference effect plot
 
 # This function creates a slope difference effect plot
@@ -559,7 +561,7 @@ slope_effect_plot <- function(dat) {
     geom_point() +
     geom_text(aes(label = test_statistic), family = "Times New Roman", nudge_x = 0.25, size = 5) +
     coord_flip() +
-    geom_hline(yintercept = 0, size = 2) +
+    geom_hline(yintercept = 0, linewidth = 2) +
     labs(
       title = "Slope Difference Test Results: Statistically Significant at Zero or Higher",
       subtitle = "No Statistically Significant Difference for Test Statistic Below Zero",

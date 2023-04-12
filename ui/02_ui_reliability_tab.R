@@ -8,7 +8,7 @@ tabPanel(
     sidebarPanel(
       # Styling and positioning
       width = 2,
-      style = "height: 899px; background: #F0F0F0; margin-left: 0px; margin-right: -10px; margin-top:-10px",
+      style = "background: #F0F0F0; margin-left: 0px; margin-right: -10px; margin-top:-10px",
       h5("1. Upload", style = "margin-top: 0rem"),
       # Upload .csv file handling
       fileInput("upload_data", ".csv or .xlsx",
@@ -60,35 +60,7 @@ tabPanel(
         column(
           # Styling
           width = 12, offset = 0, style = "padding-left:5px; padding-right:5px; margin-top:-10px",
-          wellPanel(
-            style = "padding: 0.7rem; height: 450px; background: #F0F0F0",
-            # Define tabs
-            tabsetPanel(
-              # First tab
-              tabPanel(
-                # Show reliabilities
-                "Reliabilities",
-                reactableOutput("reliability_table") %>% withSpinner(type = 6, color = "#009260"),
-                textOutput("reliability_mean"),
-                textOutput("reliability_note")
-              ),
-              # Second panel
-              tabPanel(
-                # Show slope difference tests
-                "Slope Difference",
-                reactableOutput("slope_diff_table") %>% withSpinner(type = 6, color = "#009260"),
-                textOutput("slope_note")
-              ),
-              # Third panel
-              tabPanel(
-                # Show pooled regression results
-                "Pooled Regression",
-                reactableOutput("pooled_reg_table") %>% withSpinner(type = 6, color = "#009260"),
-                textOutput("regression_fit"),
-                textOutput("regression_note")
-              )
-            )
-          )
+          uiOutput("top_row")
         )
       ),
       # Empty line between top and bottom row
@@ -101,29 +73,7 @@ tabPanel(
         column(
           # Styling
           width = 12, offset = 0, style = "padding-left:5px; padding-right:5px;",
-          wellPanel(
-            style = "padding: 0.7rem; height: 440px; background: #F0F0F0",
-            tabsetPanel(
-              # First tab
-              tabPanel(
-                # Show violin plot
-                "Violin Plot",
-                plotlyOutput("violin") %>% withSpinner(type = 6, color = "#009260")
-              ),
-              # Second panel
-              tabPanel(
-                # Show icc summary plot
-                "ICC Summary Plot",
-                plotlyOutput("icc_plot") %>% withSpinner(type = 6, color = "#009260"),
-              ),
-              # Third panel
-              tabPanel(
-                # Show slope difference plot
-                "Slope Difference Plot",
-                plotlyOutput("slope_plot") %>% withSpinner(type = 6, color = "#009260"),
-              )
-            )
-          )
+          uiOutput("bottom_row")
         )
       )
     )

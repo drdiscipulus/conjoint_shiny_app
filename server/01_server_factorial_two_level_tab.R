@@ -31,7 +31,7 @@ get_two_level_factorial <- reactive({
 }) |> bindEvent(input$generate_2)
 
 
-# render table for 2-level fractional
+# Render table for 2-level fractional
 output$two_level_table <- renderReactable({
   
   # Proceed if not null
@@ -54,5 +54,18 @@ output$two_level_table <- renderReactable({
       align = "center",
       maxWidth = 80,
     )
+  )
+}) |> bindEvent(input$generate_2)
+
+
+# Render the ui
+output$two_level <- renderUI({
+  
+  req(get_two_level_factorial())
+  
+  wellPanel(
+    style = "padding: 0.7rem; background: #F0F0F0",
+    # Define top row
+    reactableOutput("two_level_table") %>% withSpinner(type = 6, color = "#009260")
   )
 }) |> bindEvent(input$generate_2)

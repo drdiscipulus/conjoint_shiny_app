@@ -8,10 +8,10 @@ tabPanel(
     sidebarPanel(
       # Styling and positioning
       width = 2,
-      style = "height: 900px; background: #F0F0F0; margin-left: 0px; margin-right: -10px; margin-top:-10px",
+      style = "background: #F0F0F0; margin-left: 0px; margin-right: -10px; margin-top:-10px",
       h4("Define", style = "margin-top: 0rem"),
       "No more than 7 attributes and 4 levels are supported",
-      textInput("attributes_n", "Attributes:", "2,2,3,3"),
+      textInput("attributes_n", "Attributes:", "3,3,3"),
       selectInput("design_n", label = "Design", choices = list("Full", "Fractional"), selected = "Fractional"),
       selectInput("effects_n",
         label = "Effects",
@@ -24,12 +24,8 @@ tabPanel(
     # Define the output panel
     mainPanel(
       # Positioning and styling
-      width = 10, offset = 0, style = "padding-left:5px; padding-right:5px; margin-top:-10px",
-      wellPanel(
-        style = "padding: 0.7rem; height: 900px; background: #F0F0F0",
-        # Define top row
-        reactableOutput("n_level_table") %>% withSpinner(type = 6, color = "#009260")
+      width = 10, offset = 0, style = "padding-left:5px; padding-right:0px; margin-top:-10px",
+      uiOutput("n_level")
       )
     )
   )
-)

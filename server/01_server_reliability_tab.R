@@ -555,7 +555,6 @@ output$violin <- renderPlotly({
     violin_plot(
       dat = df_dev,
       num_profiles = length(unique(rv$dat$profile)),
-      plot_height = 370,
       plot_name = "violin_plot"
     )
   }
@@ -576,7 +575,7 @@ output$icc_plot <- renderPlotly({
     icc_res <- icc_effect_plot(icc_res)
 
     # Convert ggplot plot to plotly
-    ggplotly(icc_res, height = 370) |>
+    ggplotly(icc_res) |>
       layout(showlegend = FALSE) |>
       config(displaylogo = FALSE, modeBarButtonsToRemove = c(
         "toggleSpikelines",
@@ -606,7 +605,7 @@ output$slope_plot <- renderPlotly({
     slope_res <- slope_effect_plot(slope_res)
 
     # Convert ggplot plot to plotly
-    ggplotly(slope_res, height = 370) |>
+    ggplotly(slope_res) |>
       layout(showlegend = FALSE) |>
       config(displaylogo = FALSE, modeBarButtonsToRemove = c(
         "toggleSpikelines",
@@ -670,3 +669,67 @@ observe({
     rv$reset <- FALSE
   }
 })
+
+
+# Render top row ui
+output$top_row <- renderUI({
+  
+  wellPanel(
+    style = "padding: 0.7rem; background: #F0F0F0",
+    # Define tabs
+    tabsetPanel(
+      # First tab
+      tabPanel(
+        # Show reliabilities
+        "Reliabilities",
+        reactableOutput("reliability_table") %>% withSpinner(type = 6, color = "#009260"),
+        textOutput("reliability_mean"),
+        textOutput("reliability_note")
+      ),
+      # Second panel
+      tabPanel(
+        # Show slope difference tests
+        "Slope Difference",
+        reactableOutput("slope_diff_table") %>% withSpinner(type = 6, color = "#009260"),
+        textOutput("slope_note")
+      ),
+      # Third panel
+      tabPanel(
+        # Show pooled regression results
+        "Pooled Regression",
+        reactableOutput("pooled_reg_table") %>% withSpinner(type = 6, color = "#009260"),
+        textOutput("regression_fit"),
+        textOutput("regression_note")
+      )
+    )
+  )
+})  |> bindEvent(input$compute)
+
+
+# Render bottom row
+output$bottom_row <- renderUI({
+  
+  wellPanel(
+    style = "padding: 0.7rem; background: #F0F0F0",
+    tabsetPanel(
+      # First tab
+      tabPanel(
+        # Show violin plot
+        "Violin Plot",
+        plotlyOutput("violin") %>% withSpinner(type = 6, color = "#009260")
+      ),
+      # Second panel
+      tabPanel(
+        # Show icc summary plot
+        "ICC Summary Plot",
+        plotlyOutput("icc_plot") %>% withSpinner(type = 6, color = "#009260"),
+      ),
+      # Third panel
+      tabPanel(
+        # Show slope difference plot
+        "Slope Difference Plot",
+        plotlyOutput("slope_plot") %>% withSpinner(type = 6, color = "#009260"),
+      )
+    )
+  )
+})  |> bindEvent(input$compute)
