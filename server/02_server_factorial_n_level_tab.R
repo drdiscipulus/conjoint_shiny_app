@@ -65,6 +65,8 @@ output$n_level_table <- renderReactable({
   # Proceed if not null
   req(get_n_level_factorial())
 
+  custom_width <- ncol(get_n_level_factorial()) * 80 + 2
+  
   reactable(get_n_level_factorial(),
     highlight = TRUE,
     striped = TRUE,
@@ -75,12 +77,14 @@ output$n_level_table <- renderReactable({
     theme = reactableTheme(
       highlightColor = "#bdbdbd",
       stripedColor = "#E0E0E0",
-      backgroundColor = "#F0F0F0"
+      backgroundColor = "#F0F0F0",
+      borderColor = "#bdbdbd"
     ),
     defaultColDef = colDef(
       align = "center",
       maxWidth = 80,
-    )
+    ),
+    style = list(maxWidth = custom_width)
   )
 }) |> bindEvent(input$generate_n)
 

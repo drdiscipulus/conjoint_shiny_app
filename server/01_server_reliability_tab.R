@@ -355,6 +355,7 @@ output$reliability_table <- renderReactable({
 
   # If compute is go
   if (rv$compute == "go") {
+    
     # Create reactable
     reactable(rel_table(),
       highlight = TRUE,
@@ -365,16 +366,18 @@ output$reliability_table <- renderReactable({
       theme = reactableTheme(
         highlightColor = "#bdbdbd",
         stripedColor = "#E0E0E0",
-        backgroundColor = "#F0F0F0"
+        backgroundColor = "#F0F0F0",
+        borderColor = "#bdbdbd"
       ),
       # Edit columns
       columns = list(
-        profile = colDef(name = "Profiles", minWidth = 80),
+        profile = colDef(name = "Profiles", maxWidth = 80, align = "center"),
         r = colDef(minWidth = 60),
-        ICC = colDef(name = "ICC(3k)", minWidth = 80),
-        icc_upper = colDef(name = "ICC(3k) ub", minWidth = 110),
-        icc_lower = colDef(name = "ICC(3k) lb", minWidth = 110)
-      )
+        ICC = colDef(name = "ICC(3k)", maxWidth = 80),
+        icc_upper = colDef(name = "ICC(3k) ub", maxWidth = 110),
+        icc_lower = colDef(name = "ICC(3k) lb", maxWidth = 110)
+      ),
+      style = list(maxWidth = 442)
     )
   }
 }) |> bindEvent(input$compute)
@@ -413,6 +416,7 @@ output$slope_diff_table <- renderReactable({
 
   # If compute is go
   if (rv$compute == "go") {
+    
     # Setup the reactable
     reactable(slope_difference_res(),
       highlight = TRUE,
@@ -423,22 +427,24 @@ output$slope_diff_table <- renderReactable({
       theme = reactableTheme(
         highlightColor = "#bdbdbd",
         stripedColor = "#E0E0E0",
-        backgroundColor = "#F0F0F0"
+        backgroundColor = "#F0F0F0",
+        borderColor = "#bdbdbd"
       ),
       # Change some columns
       columns = list(
-        iv = colDef(name = "IV", minWidth = 50),
-        beta_i = colDef(name = "Beta 1", minWidth = 65),
-        se_i = colDef(name = "SE 1", minWidth = 50),
-        p_i = colDef(name = "p-val 1", minWidth = 70),
-        beta_r = colDef(name = "Beta 2", minWidth = 65),
-        se_r = colDef(name = "SE 2", minWidth = 50),
-        p_r = colDef(name = "p-val 2", minWidth = 70),
-        beta_diff = colDef(name = "Beta Diff", minWidth = 80),
-        joint_se = colDef(name = "Joint SE", minWidth = 80),
-        test_statistic = colDef(name = "Test Statistic", minWidth = 120),
-        stat_diff = colDef(name = "Difference", minWidth = 95)
-      )
+        iv = colDef(name = "IV", maxWidth = 50),
+        beta_i = colDef(name = "Beta 1", maxWidth = 65),
+        se_i = colDef(name = "SE 1", maxWidth = 65),
+        p_i = colDef(name = "p-val 1", maxWidth = 70),
+        beta_r = colDef(name = "Beta 2", maxWidth = 65),
+        se_r = colDef(name = "SE 2", maxWidth = 65),
+        p_r = colDef(name = "p-val 2", maxWidth = 70),
+        beta_diff = colDef(name = "Beta Diff", maxWidth = 80),
+        joint_se = colDef(name = "Joint SE", maxWidth = 80),
+        test_statistic = colDef(name = "Test Statistic", maxWidth = 120),
+        stat_diff = colDef(name = "Difference", maxWidth = 95)
+      ),
+      style = list(maxWidth = 827)
     )
   }
 }) |> bindEvent(input$compute)
@@ -488,6 +494,9 @@ output$pooled_reg_table <- renderReactable({
 
   # If compute is go
   if (rv$compute == "go") {
+    
+    custom_width <- ncol(pooled_reg_data()$dat) * 100 + 2
+    
     # Set up the reactable
     reactable(pooled_reg_data()$dat,
       highlight = TRUE,
@@ -498,8 +507,14 @@ output$pooled_reg_table <- renderReactable({
       theme = reactableTheme(
         highlightColor = "#bdbdbd",
         stripedColor = "#E0E0E0",
-        backgroundColor = "#F0F0F0"
-      )
+        backgroundColor = "#F0F0F0",
+        borderColor = "#bdbdbd"
+      ),
+      defaultColDef = colDef(
+        align = "center",
+        maxWidth = 100,
+      ),
+      style = list(maxWidth = custom_width)
     )
   }
 }) |> bindEvent(input$compute)
