@@ -690,7 +690,7 @@ observe({
 output$top_row <- renderUI({
   
   wellPanel(
-    style = "padding: 0.7rem; background: #F0F0F0",
+    style = "padding: 0.7rem; background: #FFFFFF",
     # Define tabs
     tabsetPanel(
       # First tab
@@ -725,7 +725,7 @@ output$top_row <- renderUI({
 output$bottom_row <- renderUI({
   
   wellPanel(
-    style = "padding: 0.7rem; background: #F0F0F0",
+    style = "padding: 0.7rem; background: #FFFFFF",
     tabsetPanel(
       # First tab
       tabPanel(

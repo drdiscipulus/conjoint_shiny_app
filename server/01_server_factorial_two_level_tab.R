@@ -68,7 +68,9 @@ output$two_level <- renderUI({
   req(get_two_level_factorial())
   
   wellPanel(
-    style = "padding: 0.7rem; background: #F0F0F0",
+    style = "padding: 0.7rem; background: #FFFFFF",
+    "Generated Factorial Design",
+    hr(style = "margin-top: 0.5rem; margin-bottom: 0.5rem"),
     # Define top row
     reactableOutput("two_level_table") %>% withSpinner(type = 6, color = "#009260")
   )
