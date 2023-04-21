@@ -6,13 +6,17 @@ tabPanel(
     tags$div(
       tags$h4("Purpose"),
       tags$ul(
-        tags$li('This is a companion app to our working paper titled
+        tags$li('This is a companion app to our paper titled
                 "Test-Retest Reliability in Metric Conjoint Experiments:
                 A New Workflow to Evaluate Confidence in Model Results"'),
         tags$li("In this paper, we outline and show an analytical workflow to
                 help researchers better probe threats to response consistency and
                 to evaluate — and communicate — confidence in statistical models
                 using conjoint data"),
+        tags$li("Researchers should use our workflow to evaluate the manipulated 
+                variables in their conjoint experiment prior to fitting their 
+                actual models. Accordingly, level 2 variables (measured variables) 
+                are not part of our workflow"),
         tags$li("This app makes our workflow accessible and easy to use with just one upload and two clicks"),
       ),
       tags$h4("How to use this application"),
@@ -37,7 +41,8 @@ tabPanel(
         tags$li("Your uploaded data must be in long format"),
         tags$li('When reading a csv file, the delimiter is automatically detected, but we recommend using ","'),
         tags$li("The column names should all be in lower case and if not, they are automatically converted to lower case"),
-        tags$li("If your data has missings, leave cells with missing values empty or write NA into them."),
+        tags$li("If your data has missings, leave cells with missing values empty or write NA into them"),
+        tags$li("Only level 1 variables are considered, i.e., manipulated attributes and the outcome(s)"),
         tags$li("Your data must include specific columns that contain specific data types:"),
         tags$ol(
           tags$li('The "respondent" column designates the respondent id and should be numeric or character'),
