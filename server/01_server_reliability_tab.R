@@ -64,7 +64,7 @@ observeEvent(input$show_table, {
   } else {
     # Define the modal
     showModal(modalDialog(
-      title = "Data Set", size = "xl",
+      title = "Inspect uploaded data set", size = "xl",
       "You can use the empty boxes to search columns for values",
       # Render that data as a reactable
       renderReactable(reactable(rv$dat,
@@ -102,7 +102,7 @@ observeEvent(input$show_class, {
   } else {
     # Define modal
     showModal(modalDialog(
-      title = "Data Classes and Types", size = "xl",
+      title = "Inpsect data classes and types", size = "xl",
       # Render that data as a reactable
       renderReactable(reactable(class_type_overview(rv$dat),
         highlight = TRUE,

@@ -30,6 +30,13 @@ source("functions_factorial.R") # Source functions
 source("functions_reliability.R") # Source functions
 
 
+# Define custom theme
+custom_theme <- bs_theme(
+  version = 5, primary = "#009260", secondary = "#7F8990", base_font = "Arial",
+  code_font = font_google("Roboto Mono"), `enable-gradients` = FALSE,
+  `enable-transitions` = FALSE, `enable-shadows` = TRUE, bootswatch = "united"
+)
+
 # Define UI for application that draws a histogram
 ui <- fluidPage(
 
@@ -38,12 +45,8 @@ ui <- fluidPage(
 
   ###################### Styling ###############################################
 
-  # Customize bootstrap united theme
-  theme = bs_theme(
-    version = 5, primary = "#009260", secondary = "#7F8990", base_font = "Arial",
-    code_font = font_google("Roboto Mono"), `enable-gradients` = FALSE,
-    `enable-transitions` = FALSE, `enable-shadows` = TRUE, bootswatch = "united"
-  ),
+  # Set theme
+  theme = custom_theme,
 
   # Remove margin from navbar title
   tags$style(HTML(".navbar-nav > li > a, .navbar-brand{margin-right:auto}")),
@@ -111,6 +114,7 @@ ui <- fluidPage(
 
 # Define server logic
 server <- function(input, output, session) {
+ 
   # Load all factorial design server logic
   source(file.path("server/01_server_factorial_two_level_tab.R"), local = TRUE)$value
   source(file.path("server/02_server_factorial_n_level_tab.R"), local = TRUE)$value

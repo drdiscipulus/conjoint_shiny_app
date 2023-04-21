@@ -15,20 +15,20 @@ tabPanel(
                 using conjoint data"),
         tags$li("This app makes our workflow accessible and easy to use with just one upload and two clicks"),
       ),
-      tags$h4("How to use the application"),
+      tags$h4("How to use this application"),
       tags$ul(
         tags$li("You can upload your data as a .csv or .xlsx file. Other file formats are not accepted"),
         tags$li("The data must be in long format, contain certain columns with specific values and data classes"),
         tags$li("You will get error messages, or the app may just not work, if your data does not meet these requirements"),
-        tags$li("The following sequence must be followed:"),
+        tags$li("Please follow this sequence:"),
         tags$ul(
           tags$li("Step 1: Upload a .csv or .xlsx file"),
           tags$li("Step 2: Click the check button to evaluate if your supplied data seems to be okay"),
-          tags$li("Step 3: Click the workflow button to start the workflow"),
+          tags$li("Step 3: Click the workflow button to evaluate your data"),
           tags$li("Step 4: Reset the app by clicking the reset button - also deletes your uploaded data"),
           tags$li("Optional: Inspect your data after uploading or checking by clicking the inspect table button"),
           tags$li("Optional: Inspect data classes and types after uploading or checking your data by clicking the inspect type button"),
-          tags$li("Optional: You can download a demo data set as .csv or .xlsx file"),
+          tags$li("Optional: You can download a demo data set as a .csv or .xlsx file"),
         ),
       ),
       tags$h4("Requirements"),
@@ -71,10 +71,10 @@ tabPanel(
       tags$ul(
         tags$li(tags$a(href = "https://www.eship.uni-bayreuth.de/de/team/schueler_jens/index.php", "Jens Schüler", target = "_blank")),
         tags$li(tags$a(href = "https://business.ku.edu/people/brian-anderson", "Brian S. Anderson", target = "_blank")),
-        tags$li(tags$a(href = "https://scholar.google.com/citations?user=WwnABYkAAAAJ&hl=en", "Charles Y. Murnieks", target = "_blank")),
+        tags$li(tags$a(href = "https://bloch.umkc.edu/profiles/faculty-directory/charles-y.-murnieks.html", "Charles Y. Murnieks", target = "_blank")),
+        tags$li(tags$a(href = "https://www.linkedin.com/in/alexkuesshauer/?originalSubdomain=de", "Alexander Küsshauer", target = "_blank")),        
         tags$li(tags$a(href = "https://www.eship.uni-bayreuth.de/de/team/baum_matthias/index.php", "Matthias Baum", target = "_blank")),
-      ),
-      tags$h6("R Shiny App written by: Jens Schüler")
+      )
     )
   )
 )

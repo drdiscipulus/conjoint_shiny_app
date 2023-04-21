@@ -8,10 +8,8 @@ tabPanel(
       tags$ul(
         tags$li("The purpose of this R Shiny application is to assist researchers in designing conjoint studies and evaluating the reliability of conjoint studies"),
         tags$ol(
-          tags$li("Full or fractional factorial designs are critical to how many profiles can or must be shown in a conjoint study.
-                  It is not always easy to know how many profiles you for a specific model, and where to find an appropriate factorial design.,
-                  e.g., the Hahn & Shapiro (1966) ortho plans are frequently cited in the Entrepreneurship field.
-                  However, there are more accessible and recent options available, and this application bundles some of these"),
+          tags$li("When researchers design metric conjoint experiments, they typically rely on factorial designs to determine the number of profiles required. 
+                  From our own experience, we know that especially fractional factorial designs are not always easy to come by and that the Entrepreneurship literature primarily draws on the ortho-plans of Hahn and Shapiro (1966). Therefore, to assist researchers, we bundle two R packages to generate factorial designs into an accessible user interface"),
           tags$li("We propse an analytical workflow to
                 help researchers better probe threats to response consistency and
                 to evaluate — and communicate — confidence in statistical models
