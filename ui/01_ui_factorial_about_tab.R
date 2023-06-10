@@ -3,52 +3,45 @@ tabPanel(
   title = "Factorial Designs",
   fluidRow(
     tags$div(
-      tags$h4("Purpose"),
+      tags$h4("Factorial Designs"),
       tags$ul(
-        tags$li("When researchers design metric conjoint experiments, they typically rely on factorial designs to determine the number of profiles required"),
-        tags$li("From our own experience, we know that especially fractional factorial designs are not always easy to come by and that the Entrepreneurship literature primarily draws on the ortho-plans of Hahn and Shapiro (1966)"),
-        tags$li("While more modern solutions are available for creating factorial designs, e.g., in R, using these requires some familiarity with the respective program"),
-        tags$li("Therefore, to assist researchers, we bundle two R packages to generate factorial designs into an accessible user interface:"),
+        tags$li("Factorial designs are typically used to reduce/minimize the number of decision profiles in conjoint studies"),
+        tags$li("However, these designs are not always easy to come by and researchers tend to rely on old ortho-plan publications"),
+        tags$li("While more modern solutions are available e.g., in R, using these requires some familiarity with the software"),
+        tags$li("Therefore, we bundle two R packages into an accessible user interface:"),
         tags$ul(
           tags$li(tags$a(href = "https://cran.r-project.org/web/packages/FrF2/index.html", "FrF2: Fractional Factorial Designs with 2-Level Factors", target = "_blank")),
           tags$li(tags$a(href = "https://cran.r-project.org/web/packages/DoE.base/index.html", "DoE.base: Full Factorials, Orthogonal Arrays and Base Utilities for DoE Packages", target = "_blank")),
         ),
-        tags$li("Introductory resources on factorial designs:"),
+        tags$li("Introduction to factorial designs:"),
         tags$ul(
           tags$li(tags$a(href = "https://wires.onlinelibrary.wiley.com/doi/abs/10.1002/wics.27", 'Gunst, R. F., & Mason, R. L. (2009). Fractional factorial design. Wiley Interdisciplinary Reviews: Computational Statistics, 1(2), 234-244.', target = "_blank")),
           tags$li(tags$a(href = "https://www.itl.nist.gov/div898/handbook/pri/section3/pri333.htm", 'NIST/SEMATECH e-Handbook of Statistical Methods', target = "_blank")),
           tags$li(tags$a(href = "https://en.wikipedia.org/wiki/Fractional_factorial_design", "Wikipedia article on fractional designs and resolutions", target = "_blank")),
         ),
       ),
-      tags$h4("How to use this application"),
-      tags$h5("Two-level factorial designs"),
+      tags$h4("Two-level designs"),
       tags$ul(
-        tags$li("Select this tab if you plan to conduct a conjoint experiment with two levels per attribute"),
-        tags$li("Use the slider input to select the desired number of attributes"),
-        tags$li("Select a full or fractional factorial design"),
-        tags$li("Selecting main effects or two-way interactions is only relevant for fractional designs"),
+        tags$li("Choose this tab if all attributes are manipulated into two conditions e.g. high and low"),
+        tags$li("Use the slider to set the number of attributes"),
+        tags$li("Choose if you want a full or fractional design"),
+        tags$li("In case of a fractional design, select the model:"),
         tags$ul(
-          tags$li("Main Effects: Request a resolution III design"),
-          tags$li("Two-Way: Request a resolution IV design"),
-          tags$li("Note: "),
-          tags$ol(
-            tags$li("Main Effects: Sufficient if you do not manipulate a moderator variable"),
-            tags$li("Two-Way: Required when manipulating a moderator variable"),
-          )
+          tags$li("Main effects: If none of the manipulated attributes are to be used as a moderator (resolution III design)"),
+          tags$li("Two-way: If you want to use at least one of the manipulated attributes as a moderator (resolution IV design)"),
         ),
-        tags$li("This information is then passed on to the DoE.base and FrF2 package:"),
+        tags$li("This information is passed to the DoE.base and FrF2 package:"),
         tags$ul(
           tags$li("Function call for full factorial designs: fac.design(nlevels = attributes)"),
           tags$li("Function call for fractional factorial designs: FrF2(nfactors = attributes, resolution = resolution)"),
         )
       ),
-      tags$h5("N-level and mixed-level factorial designs"),
+      tags$h4("N-level/mixed-level designs"),
       tags$ul(
-        tags$li("Select this tab if you plan to conduct a conjoint experiment with more than two-levels or different levels per attribute"),
-        tags$li("Enter the number of levels for each attribute, separated by a comma, e.g., 4,4,4 or 2,4,4,3"),
-        tags$li("No more than 4 levels and 7 attributes are currently allowed"),
-        tags$li("Select a full or fractional factorial design"),
-        tags$li("Selecting main effects or two-way interactions is only relevant for fractional designs"),
+        tags$li("Choose this tab if some or all attributes are manipulated into more than two conditions e.g. low, medium, and high"),
+        tags$li("Enter the number of levels for each attribute, separated by a comma, e.g., 4,4,4 or 2,4,4,3 - no more than 4 levels and 7 attributes are supported"),
+        tags$li("Choose if you want a full or fractional design"),
+        tags$li("In case of a fractional design, select a main-effects or two-way model"),
         tags$li("The following procedure relies on the DoE.base package:"),
         tags$ul(
           tags$li("Function call for full factorial designs: fac.design(nlevels = attributes)"),
@@ -64,13 +57,9 @@ tabPanel(
             tags$li("However, these resolution IV arrays may be larger than necessary for the given attribute and level combination")
           )
         ),
-        tags$li("The search for a suitable fractional design can take some time. Refresh the app to cancel the process"),
+        tags$li("The search can take some time - refresh the app to cancel the process"),
       ),
-      tags$h4("Disclaimer:"),
-      tags$ul(
-        tags$li("Please always evaluate the suitability of the generated designs to make sure they fit your requirements BEFORE you start your experiment"),
-        tags$li("Use the app at your own risk"),
-      )
+      tags$h5("Disclaimer: Always evaluate the suitability of the generated designs BEFORE you start your experiment"),
     )
   )
 )

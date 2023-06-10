@@ -1,32 +1,24 @@
-# about panel that explains everything
+# About panel that explains the structure of the app
 tabPanel(
   title = "Info",
   fluidRow(
-    # plain text can be added in simple quotation marks, more refined option require html tags
     tags$div(
-      tags$h4("General information"),
-      tags$ul(
-        tags$li("The purpose of this R Shiny application is to assist researchers in designing conjoint studies and evaluating the reliability of conjoint studies"),
-        tags$ol(
-          tags$li("When researchers design metric conjoint experiments, they typically rely on factorial designs to determine the number of profiles required"), 
-          tags$ul(
-            tags$li("From our own experience, we know that especially fractional factorial designs are not always easy to come by"), 
-            tags$li("For example, the Entrepreneurship literature primarily draws on the ortho-plans of Hahn and Shapiro (1966)"),
-            tags$li("We bundle two R packages to generate factorial designs into an accessible user interface"), 
-          ),
-          tags$li("Test-retest reliability in metric conjoint experiments: A new workflow to evaluate confidence in model results"),
-          tags$ul(
-            tags$li("To assess response stability, researchers frequently employ a test-retest reliability metric"),
-            tags$li("The conventional assumption is that a higher reliability coefficient equates to an acceptable degree of response stability"),
-            tags$li("A legitimate question, however, is whether this standard yields the insight wanted by the researcher"),
-            tags$li("We propse an analytical workflow to help researchers better probe threats to response consistency and to evaluate — and communicate — confidence in statistical models"),
-            tags$li("This application makes our workflow accessible and easy to use")
-          ),
+      tags$h4("The purpose of this conjoint app is twofold:"),
+      tags$ol(
+        tags$li("Provide researchers with a factorial design generator"),
+        tags$ul(
+          tags$li("Especially fractional factorial designs are often used in conjoint studies to reduce/minimize the number of decision profiles"),
+          tags$li("However, these designs are not always easy to come by and researchers tend to rely on old ortho-plan publications"),
+          tags$li("For this purpose, we bundle two R packages to generate factorial designs into an accessible user interface"),
         ),
-        tags$li("Please carefully read the instructions for using both parts of this application"),
-        tags$li("Disclaimer: Use the app at your own risk"),
-      )
+        tags$li("We bundle our proposed workflow for evaluating response consistency in conjoint studies into an easy to use app"),
+        tags$ul(
+          tags$li("The corresponding paper: Test-Retest Reliability in Metric Conjoint Experiments: A New Workflow to Evaluate Confidence in Model Results"),
+          tags$li("In this paper, we outline and show an analytical workflow to help researchers better probe threats to response consistency and to evaluate — and communicate — confidence in statistical models using conjoint data"),
+        ),
+      ),
     ),
+    tags$h6("Disclaimer: Please carefully read the instructions and use the app at your own risk"),
     tags$h6("R Shiny App written by: Jens Schüler")
   )
 )
