@@ -15,6 +15,7 @@ tabPanel(
         tags$ul(
           tags$li("The corresponding paper: Test-Retest Reliability in Metric Conjoint Experiments: A New Workflow to Evaluate Confidence in Model Results"),
           tags$li("In this paper, we outline and show an analytical workflow to help researchers better probe threats to response consistency and to evaluate — and communicate — confidence in statistical models using conjoint data"),
+          tags$li("Link to our paper published in Entreprenuership Theory and Practice: ..."),
         ),
       ),
     ),
