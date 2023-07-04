@@ -19,7 +19,7 @@ tabPanel(
           tags$li(tags$a(href = "https://www.itl.nist.gov/div898/handbook/pri/section3/pri333.htm", 'NIST/SEMATECH e-Handbook of Statistical Methods', target = "_blank")),
           tags$li(tags$a(href = "https://en.wikipedia.org/wiki/Fractional_factorial_design", "Wikipedia article on fractional designs and resolutions", target = "_blank")),
         ),
-        tags$li("The app provides you with a generated factorial design plus its correlation structure (all main effects and two-way interactions)"),
+        tags$li("The app provides you with a factorial design plus its correlation structure (all main effects and two-way interactions)"),
       ),
       tags$h4("Two-level designs"),
       tags$ul(
@@ -30,7 +30,7 @@ tabPanel(
         tags$ul(
           tags$li("Resolution III: If none of the manipulated attributes are to be used as a moderator"),
           tags$li("Resolution IV: If you want to use one of the manipulate attributes as a moderator"),
-          tags$li("Note: A resolution V design (not covered by this app) might be required when you want to manipulate more than one moderator (check the correlation structure)")
+          tags$li("Note: A resolution V design (not covered by this app) might be required when you want to manipulate more than one moderator (check the correlation structure for confounded two-way interactions)")
         ),
         tags$li("This information is passed to the DoE.base and FrF2 package:"),
         tags$ul(

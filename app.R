@@ -28,6 +28,7 @@ library(vroom) # Reading and writing .csv files
 library(openxlsx) # Read and write .xlsx files
 source("functions_factorial.R") # Source functions
 source("functions_reliability.R") # Source functions
+source("custom_corr_plot.R") # Source functions
 
 
 # Define custom theme

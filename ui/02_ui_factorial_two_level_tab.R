@@ -21,7 +21,7 @@ tabPanel(
       selectInput("effects_2",
         label = "Resolution",
         choices = list("III" = "main_effects", "IV" = "two-way"),
-        selected = "main_effects"
+        selected = "III"
       ),
       actionButton("generate_2", "Generate", class = "btn-primary", width = "100%", icon = icon("cog")),
       br(),

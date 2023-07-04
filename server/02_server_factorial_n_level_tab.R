@@ -62,8 +62,9 @@ get_n_level_factorial <- reactive({
 
 # render table for n-level fractional
 output$n_level_table <- renderReactable({
+  
   # Proceed if not null
-  req(get_n_level_factorial())
+  req(get_n_level_factorial()$table)
 
   custom_width <- ncol(get_n_level_factorial()$table) * 80 + 2
   
@@ -90,34 +91,63 @@ output$n_level_table <- renderReactable({
 
 
 # Render correlation plot for 2-level fractional
-output$n_level_cor_table <- renderPlot({
+output$n_level_plot <- renderPlot({
   
   # Proceed if not null
-  req(get_n_level_factorial())
+  req(get_n_level_factorial()$table)
   
-  # Create plot
-  ggplot(get_n_level_factorial()$plot, aes(x = as.factor(rowname), y = as.factor(variables), fill = correlation)) +
-    geom_tile(color = "white", lwd = 1, linetype = 1) +
-    geom_text(family = "Arial", size = 5, aes(label = round(correlation,1), color = after_scale(prismatic::best_contrast(fill, c("white", "black"))))) +
-    scale_fill_viridis(option = "C", discrete = FALSE, direction = -1, name = "Correlation") +
-    labs(x = "Attributes", y = "Attributes") +
-    theme_bw() +
-    theme(
-      axis.title = element_text(color = "black", size = 16, family = "Arial", face = "bold"),
-      axis.text = element_text(color = "black", size = 16, family = "Arial", face = "bold"),
-      axis.text.x = element_text(angle = 45, hjust = 1),
-      legend.title = element_text(color = "black", size = 16, family = "Arial", face = "bold"),
-      legend.text = element_text(color = "black", size = 16, family = "Arial", face = "bold")
-    ) +
-    theme(strip.text = element_text(family = "Arial", face = "bold", size = 16))
+  # Get correlation data
+  dat <- get_cor_table(data = get_n_level_factorial()$design)
   
+  # Check if data exists
+  if (is.null(dat)) {
+    
+    # Create a text plot
+    tmp <- tibble(x = c(1,2,3), y = c(1,2,3))
+    
+    ggplot(tmp, aes(x = x, y = y)) +
+      xlim(1,3) +
+      ylim(1,3) +
+      annotate("text", x = 2, y = 2.9, size = 8, family = "Arial", label = "No correlation plot can be created for the design:\na) The design has a resolution larger than V\nb)No design exists") +
+      theme_void()
+    
+    # If there is data, create a heat map    
+  } else {
+    
+    ggplot(dat, aes(x = as.factor(rowname), y = as.factor(variables), fill = correlation)) +
+      geom_tile(color = "white", lwd = 1, linetype = 1) +
+      geom_text(family = "Arial", size = 5, aes(label = round(correlation,1), color = after_scale(prismatic::best_contrast(fill, c("white", "black"))))) +
+      scale_fill_viridis(option = "C", discrete = FALSE, direction = -1, name = "Correlation") +
+      labs(x = "Attributes", y = "Attributes") +
+      theme_bw() +
+      theme(
+        axis.title = element_text(color = "black", size = 18, family = "Arial", face = "bold"),
+        axis.text = element_text(color = "black", size = 16, family = "Arial", face = "bold"),
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.title = element_text(color = "black", size = 16, family = "Arial", face = "bold"),
+        legend.text = element_text(color = "black", size = 16, family = "Arial", face = "bold")
+      ) +
+      theme(strip.text = element_text(family = "Arial", face = "bold", size = 16))
+  }
 }) |> bindEvent(input$generate_n)
 
+
+# Render text
+output$n_level_line_1 <- renderText({
+  req(get_n_level_factorial()$table)
+  "The second number behind each attribute denotes the levels - only relevant for attributes with more than two levels"
+}) |> bindEvent(input$generate_n)
+
+
+output$n_level_line_2 <- renderText({
+  req(get_n_level_factorial()$table)
+  "If the plot is not wide enough, resize your browser window and click the generate button again"
+}) |> bindEvent(input$generate_n)
 
 # Render the ui
 output$n_level <- renderUI({
   
-  req(get_n_level_factorial())
+  req(get_n_level_factorial()$table)
   
   wellPanel(
     style = "padding: 0.7rem; background: #FFFFFF",
@@ -133,7 +163,9 @@ output$n_level <- renderUI({
       tabPanel(
         # Show attribute correlations
         "Correlations",
-        plotOutput("n_level_cor_table", height = 900) %>% withSpinner(type = 6, color = "#009260")
+        textOutput("n_level_line_1"),
+        textOutput("n_level_line_2"),
+        plotOutput("n_level_plot", height = 900) %>% withSpinner(type = 6, color = "#009260")
       )
     )
   )
