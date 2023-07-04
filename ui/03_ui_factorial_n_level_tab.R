@@ -14,8 +14,8 @@ tabPanel(
       textInput("attributes_n", "Attributes:", "3,3,3"),
       selectInput("design_n", label = "Design", choices = list("Full", "Fractional"), selected = "Fractional"),
       selectInput("effects_n",
-        label = "Effects",
-        choices = list("Main Effects" = "main_effects", "Two-Way" = "two-way"),
+        label = "Resolution",
+        choices = list("III" = "main_effects", "IV" = "two-way"),
         selected = "main_effects"
       ),
       actionButton("generate_n", "Generate", class = "btn-primary", width = "100%", icon = icon("cog")),

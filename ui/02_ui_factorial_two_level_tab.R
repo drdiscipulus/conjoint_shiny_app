@@ -19,8 +19,8 @@ tabPanel(
         selected = "Fractional"
       ),
       selectInput("effects_2",
-        label = "Effects",
-        choices = list("Main Effects" = "main_effects", "Two-Way" = "two-way"),
+        label = "Resolution",
+        choices = list("III" = "main_effects", "IV" = "two-way"),
         selected = "main_effects"
       ),
       actionButton("generate_2", "Generate", class = "btn-primary", width = "100%", icon = icon("cog")),
@@ -29,9 +29,18 @@ tabPanel(
     # Define the output panel
     mainPanel(
       # Positioning and styling
-      width = 10, offset = 0, style = "padding-left:5px; padding-right:0px; margin-top:-10px",
-      # Render ui
-      uiOutput("two_level")
+      width = 10,
+      # Define top row
+      fluidRow(
+        # Styling
+        style = "margin-right:-5px",
+        # Define as single column
+        column(
+          # Styling
+          width = 12, offset = 0, style = "padding-left:5px; padding-right:5px; margin-top:-10px",
+          uiOutput("two_level")
+        )
+      )
     )
   )
 )

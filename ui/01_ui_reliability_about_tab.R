@@ -5,18 +5,8 @@ tabPanel(
     tags$div(
       tags$h4("Test-Retest Reliability in Metric Conjoint Experiments: A New Workflow to Evaluate Confidence in Model Results"),
       tags$ul(
-        tags$li("Metric conjoint studies are a popular research design in the entrepreneurship
-                domain. For these studies, test-retest reliabilities of𝜌 > 0.70 or higher
-                are an often-cited reliability criterion. Despite their widespread use,
-                however, there is little rigorous analysis of whether test-retest reliability
-                in metric conjoint studies relates to model efficacy. Informed by a systematic
-                literature review, we conducted two Monte Carlo simulations to evaluate the
-                effect of various determinants of test-retest reliability in conjoint experiments.
-                We then illustrate a workflow for entrepreneurship researchers employing
-                conjoint designs to better evaluate—and communicate—confidence in conjoint model results"),
-        tags$li("Link to our paper published in Entreprenuership Theory and Practice: ..."),
-        tags$li("All code and data used in this publication is available on the Open Science Framework:", tags$a(href = "https://osf.io/qpzhf/?view_only=61cd1571ec23440da1974756002a819e", "Link to Repository", target = "_blank")
-        ),
+        tags$li("Link to our paper published in Entreprenuership Theory and Practice: ",tags$a(href = "https://journals.sagepub.com/doi/10.1177/10422587231184071", "Link to Paper", target = "_blank")),
+        tags$li("All code and data used in this publication is available on the Open Science Framework: ", tags$a(href = "https://osf.io/qpzhf/?view_only=61cd1571ec23440da1974756002a819e", "Link to Repository", target = "_blank")),
         tags$li("Our workflow should be used to evaluate manipulated variables prior to fitting the actual model - level 2 variables (measured variables) are not part of our workflow"),
         tags$li("This app makes our workflow accessible and easy to use with just one upload and two clicks"),
       ),

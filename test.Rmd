@@ -8,22 +8,33 @@ date: "2023-04-14"
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+```{r}
+library(DoE.base)
+library(ggcorrplot)
+library(plotly)
 ```
 
-## Including Plots
+```{r}
+test <- fac.design(nlevels = 2, nfactors = 5, replications = 2)
+test <- FrF2(nfactors = 5,  resolution = 3, replications = 1)
+test <- corrPlot(test)
+test <- as.data.frame(test)
+#test <- rownames_to_column(test)
+test <- pivot_longer(test, cols = !rowname, names_to = "variables", values_to = "correlation")
 
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+  tmp <- ggplot(test, aes(x = as.factor(rowname), y = as.factor(variables), fill = correlation)) +
+    geom_tile(color = "white", lwd = 1, linetype = 1) +
+    geom_text(family = "Arial", size = 5, aes(label = correlation, color = after_scale(prismatic::best_contrast(fill, c("white", "black"))))) +
+    scale_fill_viridis(option = "C", discrete = FALSE, direction = -1, name = "Correlation") +
+    labs(x = "Variables", y = "Variables") +
+    # coord_fixed() +
+    theme_bw() +
+    theme(
+      axis.title = element_text(color = "black", size = 16, family = "Arial", face = "bold"),
+      axis.text = element_text(color = "black", size = 16, family = "Arial"),
+      legend.title = element_text(color = "black", size = 16, family = "Arial", face = "bold")
+    ) +
+    theme(strip.text = element_text(family = "Arial", face = "bold", size = 16))
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

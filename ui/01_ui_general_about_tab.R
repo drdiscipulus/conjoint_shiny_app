@@ -13,9 +13,8 @@ tabPanel(
         ),
         tags$li("We bundle our proposed workflow for evaluating response consistency in conjoint studies into an easy to use app"),
         tags$ul(
-          tags$li("The corresponding paper: Test-Retest Reliability in Metric Conjoint Experiments: A New Workflow to Evaluate Confidence in Model Results"),
+          tags$li("Link to our paper published in Entrepreneurship Theory and Practice: ", tags$a(href = "https://journals.sagepub.com/doi/10.1177/10422587231184071", 'Test-Retest Reliability in Metric Conjoint Experiments: A New Workflow to Evaluate Confidence in Model Results', target = "_blank")),
           tags$li("In this paper, we outline and show an analytical workflow to help researchers better probe threats to response consistency and to evaluate — and communicate — confidence in statistical models using conjoint data"),
-          tags$li("Link to our paper published in Entreprenuership Theory and Practice: ..."),
         ),
       ),
     ),

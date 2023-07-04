@@ -65,9 +65,9 @@ output$n_level_table <- renderReactable({
   # Proceed if not null
   req(get_n_level_factorial())
 
-  custom_width <- ncol(get_n_level_factorial()) * 80 + 2
+  custom_width <- ncol(get_n_level_factorial()$table) * 80 + 2
   
-  reactable(get_n_level_factorial(),
+  reactable(get_n_level_factorial()$table,
     highlight = TRUE,
     striped = TRUE,
     bordered = TRUE,
@@ -89,6 +89,31 @@ output$n_level_table <- renderReactable({
 }) |> bindEvent(input$generate_n)
 
 
+# Render correlation plot for 2-level fractional
+output$n_level_cor_table <- renderPlot({
+  
+  # Proceed if not null
+  req(get_n_level_factorial())
+  
+  # Create plot
+  ggplot(get_n_level_factorial()$plot, aes(x = as.factor(rowname), y = as.factor(variables), fill = correlation)) +
+    geom_tile(color = "white", lwd = 1, linetype = 1) +
+    geom_text(family = "Arial", size = 5, aes(label = round(correlation,1), color = after_scale(prismatic::best_contrast(fill, c("white", "black"))))) +
+    scale_fill_viridis(option = "C", discrete = FALSE, direction = -1, name = "Correlation") +
+    labs(x = "Attributes", y = "Attributes") +
+    theme_bw() +
+    theme(
+      axis.title = element_text(color = "black", size = 16, family = "Arial", face = "bold"),
+      axis.text = element_text(color = "black", size = 16, family = "Arial", face = "bold"),
+      axis.text.x = element_text(angle = 45, hjust = 1),
+      legend.title = element_text(color = "black", size = 16, family = "Arial", face = "bold"),
+      legend.text = element_text(color = "black", size = 16, family = "Arial", face = "bold")
+    ) +
+    theme(strip.text = element_text(family = "Arial", face = "bold", size = 16))
+  
+}) |> bindEvent(input$generate_n)
+
+
 # Render the ui
 output$n_level <- renderUI({
   
@@ -96,9 +121,20 @@ output$n_level <- renderUI({
   
   wellPanel(
     style = "padding: 0.7rem; background: #FFFFFF",
-    "Generated Factorial Design",
-    hr(style = "margin-top: 0.5rem; margin-bottom: 0.5rem"),
-    # Define top row
-    reactableOutput("n_level_table") %>% withSpinner(type = 6, color = "#009260")
+    # Define tabs
+    tabsetPanel(
+      # First tab
+      tabPanel(
+        # Show factorial design
+        "Factorial Design",
+        reactableOutput("n_level_table") %>% withSpinner(type = 6, color = "#009260")
+      ),
+      # Second panel
+      tabPanel(
+        # Show attribute correlations
+        "Correlations",
+        plotOutput("n_level_cor_table", height = 900) %>% withSpinner(type = 6, color = "#009260")
+      )
+    )
   )
 }) |> bindEvent(input$generate_n)
