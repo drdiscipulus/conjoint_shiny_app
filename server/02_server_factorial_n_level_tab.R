@@ -108,7 +108,7 @@ output$n_level_plot <- renderPlot({
     ggplot(tmp, aes(x = x, y = y)) +
       xlim(1,3) +
       ylim(1,3) +
-      annotate("text", x = 2, y = 2.9, size = 8, family = "Arial", label = "No correlation plot can be created for the specified design:\na) The design has a resolution larger than V\nb) No design exists") +
+      annotate("text", x = 2, y = 2.9, size = 8, family = "Arial", label = "No correlation plot can be created for the specified design:\na) The design has a resolution of V or larger\nb) No design exists") +
       theme_void()
     
     # If there is data, create a heat map    
