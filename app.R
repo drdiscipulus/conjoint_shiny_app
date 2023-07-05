@@ -29,7 +29,7 @@ library(openxlsx) # Read and write .xlsx files
 source("functions_factorial.R") # Source functions
 source("functions_reliability.R") # Source functions
 source("custom_corr_plot.R") # Source functions
-
+options(shiny.useragg = FALSE)
 
 # Define custom theme
 custom_theme <- bs_theme(
