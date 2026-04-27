@@ -257,7 +257,7 @@ get_n_level_fractional <- function(attributes, criterion, type = NULL) {
 get_cor_table <- function(data) {
   
     # Try to obtain correlation matrix
-    cor_dat <- try(custom_corr_plot(data, main.only = FALSE, three = FALSE))
+    cor_dat <- try(custom_corr_plot(data, main.only = FALSE, three = FALSE), silent = TRUE)
 
     # Evaluate result
     if (inherits(cor_dat, "try-error")) {

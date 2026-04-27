@@ -22,7 +22,7 @@ custom_corr_plot <- function(design, scale="corr", recode=TRUE, cor.out=TRUE, mm
       if (!round(hilf[5],5)==0) res=4
       else { 
         if (!round(hilf[6],5)==0) res=5
-        else stop("The design has resolution larger than V. corrPlot is not applicable.")
+        else res=6
       }}}
   
   if (!is.logical(recode)) stop("recode must be logical")
