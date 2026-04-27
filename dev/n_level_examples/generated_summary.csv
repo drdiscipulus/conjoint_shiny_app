@@ -1,0 +1,11 @@
+input,criterion,levels,full_factorial_size,generated_n_profiles,reduction_achieved,pairwise_works,pairwise_total,error
+"3,3,4,4",main_effects,3 x 3 x 4 x 4,144,144,FALSE,6,6,NA
+"3,3,4,4",two-way,3 x 3 x 4 x 4,144,144,FALSE,6,6,NA
+"3,3,3,3",main_effects,3 x 3 x 3 x 3,81,9,TRUE,6,6,NA
+"3,3,3,3",two-way,3 x 3 x 3 x 3,81,27,TRUE,6,6,NA
+"2,3,4,4",main_effects,2 x 3 x 4 x 4,96,48,TRUE,6,6,NA
+"2,3,4,4",two-way,2 x 3 x 4 x 4,96,96,FALSE,6,6,NA
+"4,4,4,4",main_effects,4 x 4 x 4 x 4,256,16,TRUE,6,6,NA
+"4,4,4,4",two-way,4 x 4 x 4 x 4,256,64,TRUE,6,6,NA
+"2,2,3,3,4",main_effects,2 x 2 x 3 x 3 x 4,144,72,TRUE,10,10,NA
+"2,2,3,3,4",two-way,2 x 2 x 3 x 3 x 4,144,144,FALSE,10,10,NA

@@ -8,58 +8,72 @@ tabPanel(
     sidebarPanel(
       # Styling and positioning
       width = 2,
-      style = "background: #F0F0F0; margin-left: 0px; margin-right: -10px; margin-top:-10px",
-      h5("1. Upload", style = "margin-top: 0rem"),
+      class = "workflow-sidebar",
+      h5("1. Upload", help_icon("Start here: upload a CSV or one-sheet XLSX file. Maximum upload size: 5 MB. Reliability datasets are limited to 25,000 rows. Use long-format data with respondent, round, profile, dv, and att_ columns. After upload, you can view the data table or detected variable types.")),
       # Upload .csv file handling
-      fileInput("upload_data", ".csv or .xlsx",
+      fileInput("upload_data", "Data file",
         accept = c(
           "text/csv",
           "text/comma-separated-values,text/plain",
           ".csv", ".xlsx"
         ), width = "100%", multiple = FALSE
       ),
+      uiOutput("upload_status"),
+      div(
+        class = "sidebar-button-row",
+        actionButton("show_table", "View data", class = "btn-info", icon = icon("list-alt"), `data-tooltip` = "Requirement: upload a readable file first."),
+        actionButton("show_class", "Types", class = "btn-info", icon = icon("tags"), `data-tooltip` = "Requirement: upload a readable file first.")
+      ),
       hr(),
-      # Check data handling
-      h5("2. Check", style = "margin-top: 0rem"),
-      actionButton("check_data", "", class = "btn-primary", width = "100%", icon = icon("search")),
-      br(),
+      # Validate data handling
+      h5("2. Validate", help_icon("Requirement: upload a readable CSV or XLSX file first. This step validates required columns, numeric fields, and round/profile requirements.")),
+      actionButton("check_data", "Validate data", class = "btn-primary", width = "100%", icon = icon("search"), `data-tooltip` = "Requirement: upload a readable CSV or XLSX file first."),
+      uiOutput("check_status"),
       hr(),
       # Start analysis handling
-      h5("3. Workflow", style = "margin-top: 0rem"),
-      actionButton("compute", "", class = "btn-primary", width = "100%", icon = icon("play")),
-      br(),
+      h5("3. Analysis", help_icon("Requirement: validate the uploaded data first. This step computes reliability tables, slope-difference checks, pooled regression results, and plots.")),
+      actionButton("compute", "Run analysis", class = "btn-primary", width = "100%", icon = icon("play"), `data-tooltip` = "Requirement: validate the uploaded data first."),
+      uiOutput("workflow_status"),
       hr(),
-      h5("4. Reset", style = "margin-top: 0rem"),
-      actionButton("reset", "", class = "btn-danger", width = "100%", icon = icon("trash")),
-      br(),
+      h5("4. Results", help_icon("Requirement: run the analysis first. Downloads are enabled after the reliability results are computed.")),
+      downloadButton("download_results_csv", "CSV", width = "100%"),
+      downloadButton("download_results_xlsx", "XLSX", width = "100%"),
+      uiOutput("results_status"),
       hr(),
-      h5("Inspect", style = "margin-top: 0rem"),
-      actionButton("show_table", "Table", class = "btn-info", width = "100%", icon = icon("list-alt")),
-      br(),
-      br(),
-      actionButton("show_class", "Types", class = "btn-info", width = "100%", icon = icon("tags")),
-      br(),
+      h5("5. Reset", help_icon("Requirement: upload a file first. Reset clears the current upload, generated session files, and analysis state.")),
+      actionButton("reset", "Reset", class = "btn-danger", width = "100%", icon = icon("trash"), `data-tooltip` = "Requirement: upload a file first."),
       hr(),
       # Download demo data
-      h5("Demo Data", style = "margin-top: 0rem"),
-      downloadButton("download_csv", ".csv"),
-      br(),
-      br(),
-      downloadButton("download_xlsx", ".xlsx", ),
-      br(),
+      h5("Demo Data", help_icon("Download sample files to inspect the expected reliability input format.")),
+      div(
+        class = "sidebar-button-row sidebar-button-row-compact",
+        downloadButton("download_csv", "CSV"),
+        downloadButton("download_xlsx", "XLSX")
+      )
     ),
     # Define the output panel
     mainPanel(
       # Positioning and styling
       width = 10,
+      class = "workflow-main-panel",
       # Define top row
       fluidRow(
         # Styling
-        style = "margin-right:-5px",
+        class = "app-output-row app-output-inspect-row",
+        # Define as single column
+        column(
+          width = 12, offset = 0, class = "app-output-col app-output-inspect-col",
+          uiOutput("inspect_row")
+        )
+      ),
+      # Define top row
+      fluidRow(
+        # Styling
+        class = "app-output-row app-output-top-row",
         # Define as single column
         column(
           # Styling
-          width = 12, offset = 0, style = "padding-left:5px; padding-right:5px; margin-top:-10px",
+          width = 12, offset = 0, class = "app-output-col app-output-top-col",
           uiOutput("top_row")
         )
       ),
@@ -68,11 +82,11 @@ tabPanel(
       # Define bottom row
       fluidRow(
         # Styling
-        style = "margin-right:-5px; margin-top:-15px",
+        class = "app-output-row app-output-bottom-row",
         # Define as single column
         column(
           # Styling
-          width = 12, offset = 0, style = "padding-left:5px; padding-right:5px;",
+          width = 12, offset = 0, class = "app-output-col",
           uiOutput("bottom_row")
         )
       )

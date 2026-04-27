@@ -54,10 +54,11 @@ get_two_level_fractional <- function(attributes, effects) {
     att_names[[i]] <- paste0("att_", i)
   }
 
-  # Select resoultion based on input
+  # Select resolution based on input
   resolution <- switch(effects,
     "main_effects" = 3,
-    "two-way" = 4
+    "two-way" = 4,
+    "two-way-clear" = 5
   )
 
   # Try to find optimal solution
@@ -100,18 +101,10 @@ get_two_level_fractional <- function(attributes, effects) {
 # Function to generate any kind of n- or mixed-level designs
 get_n_level_full <- function(attributes) {
   # split single string into a string vector
-  attributes <- unlist(strsplit(attributes, ","))
+  attributes <- parse_n_level_attributes(attributes)
 
   # Create empty character vector for attribute names
-  att_names <- vector(mode = "character", length = length(attributes))
-
-  # Fill vector with names
-  for (i in seq_along(att_names)) {
-    att_names[[i]] <- paste0("att_", i)
-  }
-
-  # Coerce character input to numeric
-  attributes <- as.numeric(attributes)
+  att_names <- make_attribute_names(length(attributes))
 
   # Generate a full factorial design
   res <- fac.design(
@@ -144,146 +137,116 @@ get_n_level_full <- function(attributes) {
 }
 
 
+parse_n_level_attributes <- function(attributes) {
+  as.numeric(unlist(strsplit(attributes, ",")))
+}
+
+
+make_attribute_names <- function(n_attributes) {
+  paste0("att_", seq_len(n_attributes))
+}
+
+
+format_n_level_design_result <- function(design) {
+  design_table <- as.data.frame(design)
+
+  design_table <- design_table |>
+    mutate_if(is.factor, as.character) |>
+    mutate_if(is.character, as.numeric)
+
+  profiles <- tibble(Profiles = seq_len(nrow(design_table)))
+
+  list(
+    design = design,
+    table = cbind(profiles, design_table)
+  )
+}
+
+
+load_oa_catalogue_entry <- function(array_name) {
+  array <- getAnywhere(array_name)$objs$"package:DoE.base"
+  class(array) <- c("oa", "matrix")
+  array
+}
+
+
+oa_candidate_names <- function(attributes, rgt3, prefilter_gr_below_four = FALSE, max_candidates = 100) {
+  candidates <- show.oas(
+    nlevels = attributes,
+    regular = "all",
+    GRgt3 = "all",
+    Rgt3 = rgt3,
+    show = 0,
+    parents.only = FALSE,
+    showGRs = TRUE,
+    showmetrics = TRUE,
+    digits = 2
+  )
+
+  if (prefilter_gr_below_four) {
+    candidates <- candidates |>
+      filter(GR < 4)
+  }
+
+  candidates |>
+    arrange(nruns) |>
+    slice_head(n = max_candidates) |>
+    filter(lineage == "") |>
+    pull(name)
+}
+
+
+find_resolution_four_oa <- function(attributes, att_names, candidate_names) {
+  for (candidate_name in candidate_names) {
+    array <- load_oa_catalogue_entry(candidate_name)
+    design <- oa.design(array, nlevels = attributes, columns = "min3", factor.names = att_names)
+    resolution <- GR(design, digits = 2)$GR
+
+    if (resolution >= 4) {
+      return(design)
+    }
+  }
+
+  NULL
+}
+
+
 # Function to generate any kind of n- or mixed-level designs
-get_n_level_fractional <- function(attributes, effects, type) {
+get_n_level_fractional <- function(attributes, criterion, type = NULL) {
   # split single string into a string vector
-  attributes <- unlist(strsplit(attributes, ","))
+  attributes <- parse_n_level_attributes(attributes)
 
   # Create empty character vector for attribute names
-  att_names <- vector(mode = "character", length = length(attributes))
+  att_names <- make_attribute_names(length(attributes))
 
-  # Fill vector with names
-  for (i in seq_along(att_names)) {
-    att_names[[i]] <- paste0("att_", i)
+  if (criterion == "main_effects") {
+    design <- oa.design(nlevels = attributes, columns = "min3", factor.names = att_names)
+    res <- format_n_level_design_result(design)
   }
 
-  # Coerce character input to numeric
-  attributes <- as.numeric(attributes)
-
-
-  if (effects == "main_effects") {
-    res <- oa.design(nlevels = attributes, columns = "min3", factor.names = att_names)
-
-    # Store factorial design
-    factorial_design <- res
-
-    # Create profile column
-    profiles <- tibble(Profiles = 1:nrow(res))
-
-    # Merge
-    res <- cbind(profiles, res)
-
-    # Create list
-    res <- list(design = factorial_design, table = res)
-  }
-
-  if (effects == "two-way") {
-    # Create data frame with suitable arrys
-    arry_list <- show.oas(nlevels = attributes, regular = "all", GRgt3 = "all", Rgt3 = FALSE, show = 0, parents.only = FALSE, showGRs = TRUE, showmetrics = TRUE, digits = 2)
-
-    # Filter out resolution four or better
-    arry_list <- arry_list |>
-      filter(GR < 4) |>
-      # Sort ascending by runs
-      arrange(nruns)
-
-    # Get the maximum number of rows
-    max_rows <- nrow(arry_list)
-
-    # If there are more than 100 rows, just pick top 100
-    if (max_rows > 100) max_rows <- 100
-
-    # Filter out arrays with lineage
-    arry_list <- arry_list |>
-      slice(1:max_rows) |>
-      filter(lineage == "")
-
-    # Only get the names of the arrays
-    arry_list <- arry_list$name
-
-    # Loop over all arrays
-    for (i in seq_along(arry_list)) {
-      # Load array from namespace
-      id <- getAnywhere(arry_list[[i]])$objs$"package:DoE.base"
-      class(id) <- c("oa", "matrix")
-
-      # Call design function
-      res <- oa.design(id, nlevels = attributes, columns = "min3", factor.names = att_names)
-      resolution <- GR(res, digits = 2)$GR
-
-      # If the resolution is four or better - break
-      if (resolution >= 4) {
-        # Store factorial design
-        factorial_design <- res
-
-        # Create profile column
-        profiles <- tibble(Profiles = 1:nrow(res))
-
-        # Merge
-        res <- cbind(profiles, res)
-
-        # Create list
-        res <- list(design = factorial_design, table = res)
-
-        break
-      }
-
-      # Else return null
-      res <- NULL
-    }
+  if (criterion == "two-way") {
+    candidate_names <- oa_candidate_names(
+      attributes = attributes,
+      rgt3 = FALSE,
+      prefilter_gr_below_four = TRUE
+    )
+    design <- find_resolution_four_oa(attributes, att_names, candidate_names)
 
     # Look up resolution 4 arrays if res is null
-    if (is.null(res)) {
-      # Get list of possible arrays
-      arry_list <- show.oas(nlevels = attributes, regular = "all", GRgt3 = "all", Rgt3 = TRUE, show = 0, parents.only = FALSE, showGRs = TRUE, showmetrics = TRUE, digits = 2)
-
-      # Arrange rows by number of runs
-      arry_list <- arry_list |>
-        arrange(nruns)
-
-      # Get total number of rows
-      max_rows <- nrow(arry_list)
-
-      # Only consider top 100 arrays
-      if (max_rows > 100) max_rows <- 100
-
-      # Filter for arrays with no lineage
-      arry_list <- arry_list |>
-        slice(1:max_rows) |>
-        filter(lineage == "")
-
-      # Array id vector
-      arry_names <- arry_list$name
-
-      # Loop over all array names
-      for (i in seq_along(arry_names)) {
-        # Get the matrix
-        id <- getAnywhere(arry_names[[i]])$objs$"package:DoE.base"
-        class(id) <- c("oa", "matrix")
-
-        # Create array
-        res <- oa.design(id, nlevels = attributes, columns = "min3", factor.names = att_names)
-        resolution <- GR(res, digits = 2)$GR
-
-        # Break if there is a solution
-        if (resolution >= 4) {
-          # Store factorial design
-          factorial_design <- res
-
-          # Create profile column
-          profiles <- tibble(Profiles = 1:nrow(res))
-
-          # Merge
-          res <- cbind(profiles, res)
-
-          # Create list
-          res <- list(design = factorial_design, table = res)
-          break
-        }
-
-        stop("No array exists.")
-      }
+    if (is.null(design)) {
+      candidate_names <- oa_candidate_names(
+        attributes = attributes,
+        rgt3 = TRUE,
+        prefilter_gr_below_four = FALSE
+      )
+      design <- find_resolution_four_oa(attributes, att_names, candidate_names)
     }
+
+    if (is.null(design)) {
+      stop("No array exists.", call. = FALSE)
+    }
+
+    res <- format_n_level_design_result(design)
   }
   # Return
   return(res)

@@ -1,60 +1,66 @@
-# About panel that explains the reliability part
+# About panel for the test-retest reliability workflow
 tabPanel(
   title = "Test-Retest Reliability",
   fluidRow(
     tags$div(
-      tags$h4("Test-Retest Reliability in Metric Conjoint Experiments: A New Workflow to Evaluate Confidence in Model Results"),
-      tags$ul(
-        tags$li("Link to our paper published in Entreprenuership Theory and Practice: ",tags$a(href = "https://journals.sagepub.com/doi/10.1177/10422587231184071", "Link to Paper", target = "_blank")),
-        tags$li("All code and data used in this publication is available on the Open Science Framework: ", tags$a(href = "https://osf.io/qpzhf/?view_only=61cd1571ec23440da1974756002a819e", "Link to Repository", target = "_blank")),
-        tags$li("Our workflow should be used to evaluate manipulated variables prior to fitting the actual model - level 2 variables (measured variables) are not part of our workflow"),
-        tags$li("This app makes our workflow accessible and easy to use with just one upload and two clicks"),
-      ),
-      tags$h4("How To"),
-      tags$ul(
-        tags$li("You can upload your data as a .csv or .xlsx file - other file formats are not supported"),
-        tags$li("The data must be in long format, contain certain columns with specific values and data classes"),
-        tags$li("If your data is not meeting these requirements, you will receive error messages or the app is not working"),
-        tags$li("Follow this procedure:"),
-        tags$ul(
-          tags$li("Step 1: Upload a .csv or .xlsx file"),
-          tags$li("Step 2: Click the check button to evaluate if your supplied data seems to be okay"),
-          tags$li("Step 3: Click the workflow button to start the workflow"),
-          tags$li("Step 4: Reset the app by clicking the reset button - also deletes your uploaded data"),
-          tags$li("Optional: Inspect your data after uploading or checking by clicking the inspect table button"),
-          tags$li("Optional: Inspect data classes and types after uploading or checking your data by clicking the inspect type button"),
-          tags$li("Optional: You can download a demo data set as a .csv or .xlsx file"),
+      class = "about-copy",
+      tags$h3("Test-Retest Reliability Workflow"),
+      tags$p(
+        "This section implements the workflow from ",
+        tags$a(
+          href = "https://journals.sagepub.com/doi/10.1177/10422587231184071",
+          "Test-Retest Reliability in Metric Conjoint Experiments: A New Workflow to Evaluate Confidence in Model Results",
+          target = "_blank"
         ),
+        ". The workflow is designed to help researchers evaluate response consistency for manipulated conjoint attributes before interpreting the substantive model results."
       ),
-      tags$h4("Requirements"),
+      tags$h4("Before You Upload"),
       tags$ul(
-        tags$li("See the included sample datasets on how your data must be prepared"),
-        tags$li("Your uploaded data must be in long format"),
-        tags$li('When reading a csv file, the delimiter is automatically detected, but we recommend using ","'),
-        tags$li("The column names should all be in lower case and if not, they are automatically converted to lower case"),
-        tags$li("If your data has missings, leave cells with missing values empty or write NA into them"),
-        tags$li("Only level 1 variables are considered, i.e., manipulated attributes and the outcome(s)"),
-        tags$li("Your data must include specific columns that contain specific data types:"),
-        tags$ol(
-          tags$li('The "respondent" column designates the respondent id and should be numeric or character'),
-          tags$li('The "round" column designates the first (1) and replication (2) round - only use 1 and 2'),
-          tags$li('The "profile" column designates the respective profile numbers e.g. 1 to x'),
-          tags$li('The "dv" column contains the dependent variable. Only one dependent variable can be considered at a time'),
-          tags$li('There must be at least two attributes and the attributes must be named consecutively with "att_1", "att_2" to "att_x"'),
-          tags$li('"round", "profile", "dv", and all attributes, must be numeric'),
-        ),
-        tags$li("The app checks whether your data meets these requirements"),
-        tags$li("While the app tries to fix some issues e.g. coercing data to numeric and enforcing lower case, it can't handle all eventualities"),
-        tags$li("Should you run into issues, it is best to stick to the guidelines and inspect the provided demo data sets"),
-        tags$li("As soon as the server ends your session, your data will be deleted automatically, but you can also delete it manually by using the reset button"),
+        tags$li("Use CSV or one-sheet XLSX files only."),
+        tags$li("Keep uploads below 5 MB."),
+        tags$li("Reliability datasets must contain no more than 25,000 rows."),
+        tags$li("Use long-format data with one row per respondent, round, and profile observation."),
+        tags$li("Use the bundled demo data if you want to inspect the required structure first.")
       ),
-      tags$h4("Profile pages"),
+      tags$h4("Required Columns"),
       tags$ul(
-        tags$li(tags$a(href = "https://www.eship.uni-bayreuth.de/de/team/schueler_jens/index.php", "Jens Schüler", target = "_blank")),
-        tags$li(tags$a(href = "https://business.ku.edu/people/brian-anderson", "Brian S. Anderson", target = "_blank")),
-        tags$li(tags$a(href = "https://bloch.umkc.edu/profiles/faculty-directory/charles-y.-murnieks.html", "Charles Y. Murnieks", target = "_blank")),
-        tags$li(tags$a(href = "https://www.eship.uni-bayreuth.de/de/team/baum_matthias/index.php", "Matthias Baum", target = "_blank")),
-        tags$li(tags$a(href = "https://www.linkedin.com/in/alexkuesshauer/?originalSubdomain=de", "Alexander Küsshauer", target = "_blank")),
+        tags$li(tags$code("respondent"), " identifies the respondent."),
+        tags$li(tags$code("round"), " identifies the initial round as 1 and the replication round as 2."),
+        tags$li(tags$code("profile"), " identifies the conjoint profile."),
+        tags$li(tags$code("dv"), " contains the dependent variable. Analyze one dependent variable at a time."),
+        tags$li(tags$code("att_1"), ", ", tags$code("att_2"), ", ..., ", tags$code("att_x"), " contain the manipulated attributes. At least two attributes are required.")
+      ),
+      tags$p(
+        tags$code("round"),
+        ", ",
+        tags$code("profile"),
+        ", ",
+        tags$code("dv"),
+        ", and all ",
+        tags$code("att_"),
+        " columns must be numeric or cleanly coercible to numeric. Missing values should be left empty or coded as ",
+        tags$code("NA"),
+        "."
+      ),
+      tags$h4("Workflow"),
+      tags$ol(
+        tags$li("Upload your CSV or XLSX file."),
+        tags$li("Click the validate button to check the file structure."),
+        tags$li("Inspect the table or variable types if needed."),
+        tags$li("Run the analysis to compute the reliability results."),
+        tags$li("Download the Excel workbook or CSV archive if you need local copies of the result tables."),
+        tags$li("Use reset to clear the current upload and generated session files.")
+      ),
+      tags$h4("What The Workflow Covers"),
+      tags$ul(
+        tags$li("Profile-level Pearson correlations."),
+        tags$li("ICC(3,k) reliability estimates."),
+        tags$li("Slope-difference checks between initial and replication rounds."),
+        tags$li("A pooled regression model with clustered standard errors."),
+        tags$li("Plots for response deviations, ICC summaries, and slope differences.")
+      ),
+      tags$p(
+        "The workflow focuses on level-1 manipulated conjoint attributes and outcomes. Measured level-2 respondent variables are not part of this app's reliability workflow."
       )
     )
   )

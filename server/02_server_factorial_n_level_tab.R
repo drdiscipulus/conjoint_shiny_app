@@ -1,3 +1,33 @@
+shinyjs::disable("download_n_level_csv")
+shinyjs::disable("download_n_level_xlsx")
+
+observe({
+  if (identical(input$design_n, "Full")) {
+    shinyjs::disable("effects_n")
+  } else {
+    shinyjs::enable("effects_n")
+  }
+})
+
+n_level_error <- reactiveVal(NULL)
+
+set_n_level_failure <- function(message) {
+  n_level_error(message)
+  shinyjs::disable("download_n_level_csv")
+  shinyjs::disable("download_n_level_xlsx")
+  NULL
+}
+
+output$n_level_status <- renderUI({
+  if (!is.null(n_level_error())) {
+    return(tags$div(class = "status-badge status-error", icon("exclamation-triangle"), n_level_error()))
+  }
+  if (input$generate_n > 0 && !is.null(get_n_level_factorial()$table)) {
+    return(tags$div(class = "status-badge status-complete", icon("check"), "Design generated"))
+  }
+  NULL
+})
+
 # Try to get factorial design when button is pressed
 get_n_level_factorial <- reactive({
   # Get separators
@@ -11,52 +41,212 @@ get_n_level_factorial <- reactive({
 
   # Throw an error if separators are not all commas
   if (length(separator) != sum(str_count(separator, ","))) {
-    shinyalert("Error!", "Commas must be used as separators", type = "error")
-    res <- NULL
+    res <- set_n_level_failure("Use commas as separators, for example 3,3,3.")
     # Throw error if not all attributes are numeric
   } else if (length(attributes) != length(attributes_numeric)) {
-    shinyalert("Error!", "Not all attributes are numeric", type = "error")
-    res <- NULL
+    res <- set_n_level_failure("All attributes must be numeric level counts.")
     # Throw errors if there are less than 2 or more than 7 attributes
   } else if (length(attributes) < 2) {
-    shinyalert("Error!", "No less than 2 attributes", type = "error")
-    res <- NULL
+    res <- set_n_level_failure("Use at least 2 attributes.")
   } else if (length(attributes) > 7) {
-    shinyalert("Error!", "No more than 7 attributes", type = "error")
-    res <- NULL
+    res <- set_n_level_failure("Use no more than 7 attributes.")
     # No more than 4 levels and less than 2 levels allowed
   } else if (max(attributes) > 4) {
-    shinyalert("Error!", "No more than 4 levels", type = "error")
-    res <- NULL
+    res <- set_n_level_failure("Use no more than 4 levels per attribute.")
   } else if (min(attributes) < 2) {
-    shinyalert("Error!", "No less than 2 levels", type = "error")
-    res <- NULL
+    res <- set_n_level_failure("Use at least 2 levels per attribute.")
   } else if (input$design_n == "Fractional") {
     # Try to obtain result
     res <- try(get_n_level_fractional(
       attributes = input$attributes_n,
-      effects = input$effects_n
-    ))
+      criterion = input$effects_n
+    ), silent = TRUE)
 
     if (inherits(res, "try-error")) {
-      shinyalert("Error!", "No Solution could be found", type = "error")
-      res <- NULL
+      res <- set_n_level_failure("No solution could be found for these settings.")
     } else {
+      n_level_error(NULL)
+      shinyjs::enable("download_n_level_csv")
+      shinyjs::enable("download_n_level_xlsx")
       res
     }
   } else if (input$design_n == "Full") {
     # Try to obtain result
     res <- try(get_n_level_full(
       attributes = input$attributes_n
-    ))
+    ), silent = TRUE)
 
     if (inherits(res, "try-error")) {
-      shinyalert("Error!", "No Solution could be found", type = "error")
-      res <- NULL
+      res <- set_n_level_failure("No solution could be found for these settings.")
     } else {
+      n_level_error(NULL)
+      shinyjs::enable("download_n_level_csv")
+      shinyjs::enable("download_n_level_xlsx")
       res
     }
   }
+}) |> bindEvent(input$generate_n)
+
+
+output$download_n_level_csv <- downloadHandler(
+  filename = function() {
+    "n_level_factorial_design.csv"
+  },
+  content = function(file) {
+    req(get_n_level_factorial()$table)
+    readr::write_csv(get_n_level_factorial()$table, file)
+  }
+)
+
+
+output$download_n_level_xlsx <- downloadHandler(
+  filename = function() {
+    "n_level_factorial_design.xlsx"
+  },
+  content = function(file) {
+    req(get_n_level_factorial()$table)
+    openxlsx::write.xlsx(get_n_level_factorial()$table, file, overwrite = TRUE)
+  }
+)
+
+n_level_coverage_data <- reactive({
+  req(get_n_level_factorial()$table)
+  n_level_interaction_coverage(
+    get_n_level_factorial()$table,
+    n_level_attribute_counts(input$attributes_n)
+  )
+}) |> bindEvent(input$generate_n)
+
+
+n_level_design_metadata_data <- reactive({
+  req(get_n_level_factorial()$table)
+  n_level_design_metadata(
+    requested_design_type = input$design_n,
+    attributes = input$attributes_n,
+    design_table = get_n_level_factorial()$table
+  )
+}) |> bindEvent(input$generate_n)
+
+
+output$n_level_design_summary <- renderUI({
+  req(n_level_design_metadata_data())
+  metadata <- n_level_design_metadata_data()
+  reduction_label <- if (metadata$reduction_achieved) "Yes" else "No"
+
+  div(
+    class = "result-summary",
+    div(
+      class = "result-meta-strip",
+      div(class = "result-meta-item", span("Levels"), strong(metadata$levels_per_attribute)),
+      div(class = "result-meta-item", span("Full Size"), strong(metadata$full_factorial_size)),
+      div(class = "result-meta-item", span("Generated"), strong(metadata$generated_n_profiles)),
+      div(class = "result-meta-item", span("Reduction"), strong(reduction_label))
+    ),
+    if (metadata$effectively_full_factorial) {
+      tags$div(
+        class = "inline-callout inline-callout-warning",
+        icon("exclamation-triangle"),
+        tags$span(
+          paste0(
+            "Fractional design was selected, but ",
+            metadata$levels_per_attribute,
+            " = ",
+            metadata$full_factorial_size,
+            " possible profiles and the generated design also contains ",
+            metadata$generated_n_profiles,
+            " profiles. No profile reduction was achieved under the current N-level design constraints."
+          )
+        )
+      )
+    } else if (metadata$reduction_achieved) {
+      NULL
+    }
+  )
+}) |> bindEvent(input$generate_n)
+
+
+output$n_level_coverage_summary <- renderText({
+  req(n_level_coverage_data())
+  req(n_level_design_metadata_data())
+  coverage <- n_level_coverage_data()
+  metadata <- n_level_design_metadata_data()
+  profile_count <- nrow(get_n_level_factorial()$table)
+  lower_bound <- max(coverage$minimum_profiles)
+  works <- sum(coverage$status == "works")
+  total <- nrow(coverage)
+
+  paste0(
+    "This table checks whether each pair of attributes covers all possible level combinations and whether those combinations are balanced. It does not describe classical fractional-factorial aliasing. ",
+    if (metadata$effectively_full_factorial || input$design_n == "Full") {
+      "Because the generated design is full factorial, all two-way level combinations are observed and balanced by construction. "
+    } else {
+      ""
+    },
+    works, " of ", total,
+    " attribute pairs are fully observed and balanced. The design has ",
+    profile_count, " profiles. The largest two-way level combination contains ",
+    lower_bound,
+    " cells. At least ", lower_bound,
+    " profiles are needed to observe each of those cells once. A balanced design across all attribute pairs may require more profiles."
+  )
+}) |> bindEvent(input$generate_n)
+
+
+output$n_level_coverage_table <- renderReactable({
+  req(n_level_coverage_data())
+
+  reactable(n_level_coverage_data(),
+    highlight = TRUE,
+    striped = TRUE,
+    bordered = TRUE,
+    compact = TRUE,
+    defaultPageSize = 20,
+    theme = app_reactable_theme(),
+    defaultColDef = colDef(
+      align = "left",
+      minWidth = 120
+    ),
+    columns = list(
+      interaction = colDef(
+        name = "Interaction",
+        minWidth = 180
+      ),
+      status = colDef(
+        name = "Status",
+        minWidth = 125,
+        cell = function(value) {
+          tags$span(
+            class = paste("coverage-status", paste0("coverage-status-", gsub(" ", "-", value, fixed = TRUE))),
+            value
+          )
+        }
+      ),
+      observed_combinations = colDef(
+        name = "Observed",
+        minWidth = 110,
+        align = "center"
+      ),
+      minimum_profiles = colDef(
+        name = "Lower Bound",
+        minWidth = 120,
+        align = "center"
+      ),
+      min_cell_count = colDef(
+        name = "Min Count",
+        minWidth = 105,
+        align = "center"
+      ),
+      max_cell_count = colDef(
+        name = "Max Count",
+        minWidth = 105,
+        align = "center"
+      ),
+      interpretation = colDef(
+        name = "Interpretation",
+        minWidth = 430
+      )
+    )
+  )
 }) |> bindEvent(input$generate_n)
 
 
@@ -66,7 +256,7 @@ output$n_level_table <- renderReactable({
   # Proceed if not null
   req(get_n_level_factorial()$table)
 
-  custom_width <- ncol(get_n_level_factorial()$table) * 80 + 2
+  custom_width <- 95 + ((ncol(get_n_level_factorial()$table) - 1) * 120) + 2
   
   reactable(get_n_level_factorial()$table,
     highlight = TRUE,
@@ -75,97 +265,49 @@ output$n_level_table <- renderReactable({
     compact = TRUE,
     defaultPageSize = 16,
     # Table theming
-    theme = reactableTheme(
-      highlightColor = "#bdbdbd",
-      stripedColor = "#E0E0E0",
-      backgroundColor = "#F0F0F0",
-      borderColor = "#bdbdbd"
-    ),
+    theme = app_reactable_theme(),
     defaultColDef = colDef(
       align = "center",
-      maxWidth = 80,
+      minWidth = 80,
     ),
+    columns = attribute_column_defs(get_n_level_factorial()$table),
     style = list(maxWidth = custom_width)
   )
 }) |> bindEvent(input$generate_n)
 
 
-# Render correlation plot for 2-level fractional
-output$n_level_plot <- renderPlot({
-  
-  # Proceed if not null
-  req(get_n_level_factorial()$table)
-  
-  # Get correlation data
-  dat <- get_cor_table(data = get_n_level_factorial()$design)
-  
-  # Check if data exists
-  if (is.null(dat)) {
-    
-    # Create a text plot
-    tmp <- tibble(x = c(1,2,3), y = c(1,2,3))
-    
-    ggplot(tmp, aes(x = x, y = y)) +
-      xlim(1,3) +
-      ylim(1,3) +
-      annotate("text", x = 2, y = 2.9, size = 8, family = "Arial", label = "No correlation plot can be created for the specified design:\na) The design has a resolution of V or larger\nb) No design exists") +
-      theme_void()
-    
-    # If there is data, create a heat map    
-  } else {
-    
-    ggplot(dat, aes(x = as.factor(rowname), y = as.factor(variables), fill = correlation)) +
-      geom_tile(color = "white", lwd = 1, linetype = 1) +
-      geom_text(family = "Arial", size = 5, aes(label = round(correlation,1), color = after_scale(prismatic::best_contrast(fill, c("white", "black"))))) +
-      scale_fill_viridis(option = "C", discrete = FALSE, direction = -1, name = "Correlation") +
-      labs(x = "Attributes", y = "Attributes") +
-      theme_bw() +
-      theme(
-        axis.title = element_text(color = "black", size = 18, family = "Arial", face = "bold"),
-        axis.text = element_text(color = "black", size = 16, family = "Arial", face = "bold"),
-        axis.text.x = element_text(angle = 45, hjust = 1),
-        legend.title = element_text(color = "black", size = 16, family = "Arial", face = "bold"),
-        legend.text = element_text(color = "black", size = 16, family = "Arial", face = "bold")
-      ) +
-      theme(strip.text = element_text(family = "Arial", face = "bold", size = 16))
-  }
-}) |> bindEvent(input$generate_n)
-
-
-# Render text
-output$n_level_line_1 <- renderText({
-  req(get_n_level_factorial()$table)
-  "The second number behind each attribute denotes the levels - only relevant for attributes with more than two levels"
-}) |> bindEvent(input$generate_n)
-
-
-output$n_level_line_2 <- renderText({
-  req(get_n_level_factorial()$table)
-  "If the plot is not wide enough, resize your browser window and click the generate button again"
-}) |> bindEvent(input$generate_n)
-
 # Render the ui
 output$n_level <- renderUI({
+  if (input$generate_n == 0) {
+    return(factorial_placeholder(
+      "Generate An N-Level Design",
+      "Enter level counts such as 3,3,4,4, then generate a mixed-level design to inspect profiles and pairwise coverage."
+    ))
+  }
   
-  req(get_n_level_factorial()$table)
+  if (is.null(get_n_level_factorial()$table)) {
+    return(factorial_placeholder(
+      "No Design Generated",
+      "Adjust the design settings and generate again.",
+      n_level_error()
+    ))
+  }
   
-  wellPanel(
-    style = "padding: 0.7rem; background: #FFFFFF",
+  div(
+    class = "result-panel factorial-result-panel",
     # Define tabs
     tabsetPanel(
       # First tab
       tabPanel(
         # Show factorial design
         "Factorial Design",
+        uiOutput("n_level_design_summary"),
         reactableOutput("n_level_table") %>% withSpinner(type = 6, color = "#009260")
       ),
-      # Second panel
       tabPanel(
-        # Show attribute correlations
-        "Correlations",
-        textOutput("n_level_line_1"),
-        textOutput("n_level_line_2"),
-        plotOutput("n_level_plot", height = 900) %>% withSpinner(type = 6, color = "#009260")
+        "Interaction Coverage",
+        div(class = "result-summary", textOutput("n_level_coverage_summary")),
+        reactableOutput("n_level_coverage_table") %>% withSpinner(type = 6, color = "#009260")
       )
     )
   )

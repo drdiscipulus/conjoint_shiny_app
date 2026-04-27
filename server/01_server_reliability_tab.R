@@ -1,7 +1,29 @@
+# Create a session-specific directory for generated files
+session_dir <- create_session_dir(session)
+session$onSessionEnded(function() {
+  cleanup_session_dir(session_dir)
+})
+
 # Set reactive values to handle input data, check status, and compute status
 # dat: makes the read dataset available and editable between functions
 # check and compute: are both used as triggers/blocks
-rv <- reactiveValues(dat = NULL, check = NULL, compute = NULL, reset = FALSE)
+rv <- reactiveValues(
+  dat = NULL,
+  check = NULL,
+  compute = NULL,
+  reset = FALSE,
+  upload_error = NULL,
+  check_error = NULL,
+  dropped_profiles = FALSE,
+  inspect = NULL
+)
+shinyjs::disable("check_data")
+shinyjs::disable("compute")
+shinyjs::disable("reset")
+shinyjs::disable("show_table")
+shinyjs::disable("show_class")
+shinyjs::disable("download_results_xlsx")
+shinyjs::disable("download_results_csv")
 
 
 # Download csv demo data set
@@ -30,6 +52,48 @@ output$download_xlsx <- downloadHandler(
 )
 
 
+# Download computed reliability results as an Excel workbook
+output$download_results_xlsx <- downloadHandler(
+  filename = function() {
+    "conjoint_reliability_results.xlsx"
+  },
+  content = function(file) {
+    ensure_analysis_ready(rv)
+    internal_file <- session_file_path(session_dir, "results.xlsx")
+    write_reliability_results_xlsx(
+      path = internal_file,
+      reliability_table = rel_table(),
+      reliability_mean = rel_string(),
+      slope_difference_table = slope_difference_res(),
+      pooled_regression_table = pooled_reg_data()$dat,
+      pooled_regression_fit = pooled_reg_data()$fit
+    )
+    file.copy(internal_file, file, overwrite = TRUE)
+  }
+)
+
+
+# Download computed reliability results as CSV files in one zip archive
+output$download_results_csv <- downloadHandler(
+  filename = function() {
+    "conjoint_reliability_results_csv.zip"
+  },
+  content = function(file) {
+    ensure_analysis_ready(rv)
+    internal_file <- session_file_path(session_dir, "results_csv.zip")
+    write_reliability_results_csv_zip(
+      path = internal_file,
+      reliability_table = rel_table(),
+      reliability_mean = rel_string(),
+      slope_difference_table = slope_difference_res(),
+      pooled_regression_table = pooled_reg_data()$dat,
+      pooled_regression_fit = pooled_reg_data()$fit
+    )
+    file.copy(internal_file, file, overwrite = TRUE)
+  }
+)
+
+
 # Upload a .csv or .xlsx file
 # This function tries to read a supplied .csv or .xlsx file
 # Throws a warning or error if something is wrong with the file
@@ -40,208 +104,117 @@ observeEvent(input$upload_data, {
   rv$compute <- NULL
   # Set data to null when new data is uploaded
   rv$dat <- NULL
+  rv$check_error <- NULL
+  rv$dropped_profiles <- FALSE
+  rv$inspect <- NULL
+  shinyjs::disable("check_data")
+  shinyjs::disable("compute")
+  shinyjs::disable("reset")
+  shinyjs::disable("show_table")
+  shinyjs::disable("show_class")
 
   # If an uploaded file exists
   if (!is.null(input$upload_data)) {
-    rv$dat <- file_upload(input$upload_data)
+    upload_res <- file_upload(input$upload_data)
+    shinyjs::disable("download_results_xlsx")
+    shinyjs::disable("download_results_csv")
+
+    if (inherits(upload_res, "try-error")) {
+      rv$upload_error <- conditionMessage(attr(upload_res, "condition"))
+      rv$dat <- NULL
+    } else {
+      rv$upload_error <- NULL
+      rv$dat <- upload_res
+      shinyjs::enable("check_data")
+      shinyjs::enable("reset")
+      shinyjs::enable("show_table")
+      shinyjs::enable("show_class")
+    }
   }
 })
 
 
-# Create a modal popup dialog when the table info button is pressed
+# Show compact workflow states under their corresponding sidebar steps
+output$upload_status <- renderUI({
+  if (!is.null(rv$upload_error)) {
+    return(tags$div(class = "status-badge status-error", icon("exclamation-triangle"), rv$upload_error))
+  }
+  if (!is.null(rv$dat) || !is.null(input$upload_data)) {
+    return(tags$div(class = "status-badge status-uploaded", icon("file-alt"), "File uploaded"))
+  }
+  NULL
+})
+
+output$check_status <- renderUI({
+  if (!is.null(rv$check_error)) {
+    return(tags$div(class = "status-badge status-error", icon("exclamation-triangle"), rv$check_error))
+  }
+  if (!is.null(rv$check) && rv$check == "okay") {
+    if (isTRUE(rv$dropped_profiles)) {
+      return(tags$div(class = "status-badge status-checked", icon("check"), "Data validated; non-replicated profiles removed"))
+    }
+    return(tags$div(class = "status-badge status-checked", icon("check"), "Data validated"))
+  }
+  NULL
+})
+
+output$workflow_status <- renderUI({
+  if (!is.null(rv$compute) && rv$compute == "go") {
+    return(tags$div(class = "status-badge status-complete", icon("check"), "Analysis complete"))
+  }
+  NULL
+})
+
+output$results_status <- renderUI({
+  if (!is.null(rv$compute) && rv$compute == "go") {
+    return(tags$div(class = "status-badge status-complete", icon("download"), "Downloads ready"))
+  }
+  NULL
+})
+
+
+# Show uploaded data inline when the table inspect button is pressed
 observeEvent(input$show_table, {
-  # Show a message if no data has been uploaded but the table button is pressed
-  if (is.null(input$upload_data)) {
-    shinyalert("Error!", "Please upload a file first", type = "error")
-
-    # If the show table button is pressed, test if path of input file exists
-  } else if (!file.exists(input$upload_data$datapath)) {
-    shinyalert("Error!", "Please upload a file first", type = "error")
-    # Test if data exists
-  } else if (is.null(rv$dat)) {
-    shinyalert("Error!", "The upload cannot be displayed as a table", type = "error")
-    # If data exists
-  } else {
-    # Define the modal
-    showModal(modalDialog(
-      title = "Inspect uploaded data set", size = "xl",
-      "You can use the empty boxes to search columns for values",
-      # Render that data as a reactable
-      renderReactable(reactable(rv$dat,
-        highlight = TRUE,
-        striped = TRUE,
-        bordered = TRUE,
-        compact = TRUE,
-        defaultPageSize = 10,
-        filterable = TRUE,
-        # Table theming
-        theme = reactableTheme(
-          highlightColor = "#bdbdbd",
-          stripedColor = "#E0E0E0",
-          backgroundColor = "#F0F0F0"
-        )
-      ))
-    ))
-  }
+  req(rv$dat)
+  rv$inspect <- "table"
 })
 
 
-# Create a modal popup dialog when the class info button is pressed
+# Show variable classes/types inline when the type inspect button is pressed
 observeEvent(input$show_class, {
-  # Show a message if no data has been uploaded but the class button is pressed
-  if (is.null(input$upload_data)) {
-    shinyalert("Error!", "Please upload a file first", type = "error")
-
-    # If the class button is pressed, test if path of input file exists
-  } else if (!file.exists(input$upload_data$datapath)) {
-    shinyalert("Error!", "Please upload a file first", type = "error")
-    # If no data exists
-  } else if (is.null(rv$dat)) {
-    shinyalert("Error!", "The upload cannot be displayed", type = "error")
-    # If data exists
-  } else {
-    # Define modal
-    showModal(modalDialog(
-      title = "Inpsect data classes and types", size = "xl",
-      # Render that data as a reactable
-      renderReactable(reactable(class_type_overview(rv$dat),
-        highlight = TRUE,
-        striped = TRUE,
-        bordered = TRUE,
-        compact = TRUE,
-        defaultPageSize = 10,
-        # Table theming
-        theme = reactableTheme(
-          highlightColor = "#bdbdbd",
-          stripedColor = "#E0E0E0",
-          backgroundColor = "#F0F0F0"
-        )
-      ))
-    ))
-  }
+  req(rv$dat)
+  rv$inspect <- "types"
 })
 
 
-# This functions evaluates the uploaded data
-# Just a few checks to verify that the data meets requirements
-# However, this is very basic and no safeguard against every possible mishap
+# Evaluate the uploaded data against the reliability workflow requirements
 observeEvent(input$check_data, {
-  # Show a message if no data has been uploaded but the check button is pressed
   if (is.null(input$upload_data)) {
-    shinyalert("Error!", "Please upload a file first", type = "error")
-
-    # If the check button is pressed, test if path of input file exists
+    rv$check_error <- "Upload a file first"
+    return(NULL)
   } else if (!file.exists(input$upload_data$datapath)) {
-    shinyalert("Error!", "Please upload a file first", type = "error")
+    rv$check_error <- "Upload the file again"
+    return(NULL)
   } else if (is.null(rv$dat)) {
-    shinyalert("Error!", "No file could be read", type = "error")
+    rv$check_error <- rv$upload_error %||% "No file could be read"
+    return(NULL)
   }
 
-  # Set rv$dat to null if there was an error or warning while reading the file
-  if (inherits(rv$dat, "try-error")) {
-    shinyalert("Error!", "No file could be read", type = "error")
+  validation <- try(validate_reliability_dataset(rv$dat), silent = TRUE)
+  if (inherits(validation, "try-error")) {
     rv$dat <- NULL
+    rv$check <- NULL
+    rv$check_error <- conditionMessage(attr(validation, "condition"))
+    rv$dropped_profiles <- FALSE
+    shinyjs::disable("compute")
+    return(NULL)
   }
 
-  # Only proceed if dat is not null
-  req(rv$dat)
-
-  # Try to select all required columns
-  res <- column_checker(rv$dat)
-
-  # Check if it includes an error or not
-  if (inherits(res, "try-error")) {
-    shinyalert("Error!", "Required variables are missing", type = "error")
-    rv$dat <- NULL
-  } else {
-    rv$dat <- res
-  }
-  #  Only proceed if dat is not null
-  req(rv$dat)
-
-  # Get number of attributes
-  att_num <- attribute_checker(rv$dat)
-
-  # Check if it includes an error or not
-  if (inherits(res, "try-error")) {
-    shinyalert("Error!", "Number of attributes can't be determined", type = "error")
-    rv$dat <- NULL
-  }
-
-  # Only proceed if dat is not null
-  req(rv$dat)
-
-  # Check if there are two or more attributes
-  if (att_num < 2) {
-    shinyalert("Error!", "Less than two attributes", type = "error")
-    rv$dat <- NULL
-  }
-
-  # Only proceed if dat is not null
-  req(rv$dat)
-
-  # Try to coerce data to numeric where required
-  res <- class_checker(rv$dat)
-
-  # Check if it includes an error or not
-  if (inherits(res, "try-error")) {
-    shinyalert("Error!", "Not all required variables are numeric or can't be coerced into numeric", type = "error")
-    rv$dat <- NULL
-  } else {
-    rv$dat <- res
-  }
-
-  # Only proceed if dat is not null
-  req(rv$dat)
-
-  # Check if round only contains 1 and 2
-  round_test <- try(round_checker(rv$dat), silent = TRUE)
-
-  # Check if it includes an error or not
-  if (inherits(round_test, "try-error")) {
-    shinyalert("Error!", 'Variable "round" cannot be checked', type = "error")
-    rv$dat <- NULL
-  } else if (isFALSE(round_test)) {
-    shinyalert("Error!", 'Variable "round" is not correctly specified', type = "error")
-    rv$dat <- NULL
-  }
-
-  # Only proceed if dat is not null
-  req(rv$dat)
-
-  # In case of partial replications, drop non-replicated profiles
-  initial_dat <- rv$dat |>
-    filter(round == 1)
-
-  # Filter for round 2
-  replication_dat <- rv$dat |>
-    filter(round == 2)
-
-  # # Get all unique round 1 profiles
-  initial_profiles <- unique(initial_dat$profile)
-
-  # Get all unique round 2 profiles
-  replication_profiles <- unique(replication_dat$profile)
-
-  # Check if both profile vectors are not identical
-  if (!identical(initial_profiles, replication_profiles)) {
-    # If they are not identical, remove profiles from first round data
-    rv$dat <- rv$dat |>
-      filter(profile %in% replication_profiles)
-
-    # The data should be fine now, thus set status to okay
-    rv$check <- "okay"
-    # Notify user that things are probably okay and that profiles were dropped
-    shinyalert("Success!", "The data seems to be okay but non-replicated profiles were removed", type = "success")
-    #
-    # If the profiles are identical/full replication...
-  } else {
-    # Set check status to okay
-    rv$check <- "okay"
-
-    # Notify the user that things are probably okay
-    shinyalert("Success!", "The data seems to be okay", type = "success")
-  }
+  rv$dat <- validation$data
+  rv$check <- "okay"
+  rv$check_error <- NULL
+  rv$dropped_profiles <- isTRUE(validation$dropped_profiles)
+  shinyjs::enable("compute")
 })
 
 
@@ -249,20 +222,12 @@ observeEvent(input$check_data, {
 observeEvent(input$compute, {
   # Check if the check went well
   if (is.null(rv$check)) {
-    # Show a message if no data has been uploaded but the check button is pressed
-    if (is.null(input$upload_data)) {
-      shinyalert("Error!", "Please upload a file first", type = "error")
-
-      # If the check button is pressed, test if path of input file exists
-    } else if (!file.exists(input$upload_data$datapath)) {
-      shinyalert("Error!", "Please upload a file first", type = "error")
-    } else if (is.null(rv$dat)) {
-      shinyalert("Error!", "No file could be read", type = "error")
-    } else {
-      shinyalert("Error!", "You haven't checked your data or it failed the check", type = "error")
-    }
+    rv$check_error <- "Validate the uploaded data first"
+    return(NULL)
   } else {
     rv$compute <- "go"
+    shinyjs::enable("download_results_xlsx")
+    shinyjs::enable("download_results_csv")
   }
 })
 
@@ -363,21 +328,16 @@ output$reliability_table <- renderReactable({
       bordered = TRUE,
       compact = TRUE,
       # Table theming
-      theme = reactableTheme(
-        highlightColor = "#bdbdbd",
-        stripedColor = "#E0E0E0",
-        backgroundColor = "#F0F0F0",
-        borderColor = "#bdbdbd"
-      ),
+      theme = app_reactable_theme(),
       # Edit columns
       columns = list(
-        profile = colDef(name = "Profiles", maxWidth = 80, align = "center"),
-        r = colDef(minWidth = 60),
-        ICC = colDef(name = "ICC(3k)", maxWidth = 80),
-        icc_upper = colDef(name = "ICC(3k) ub", maxWidth = 110),
-        icc_lower = colDef(name = "ICC(3k) lb", maxWidth = 110)
+        profile = colDef(name = "Profiles", minWidth = 85, align = "center"),
+        r = colDef(minWidth = 70),
+        ICC = colDef(name = "ICC(3k)", minWidth = 90),
+        icc_upper = colDef(name = "ICC(3k) ub", minWidth = 120),
+        icc_lower = colDef(name = "ICC(3k) lb", minWidth = 120)
       ),
-      style = list(maxWidth = 442)
+      style = list(minWidth = 485)
     )
   }
 }) |> bindEvent(input$compute)
@@ -424,27 +384,22 @@ output$slope_diff_table <- renderReactable({
       bordered = TRUE,
       compact = TRUE,
       # table theming
-      theme = reactableTheme(
-        highlightColor = "#bdbdbd",
-        stripedColor = "#E0E0E0",
-        backgroundColor = "#F0F0F0",
-        borderColor = "#bdbdbd"
-      ),
+      theme = app_reactable_theme(),
       # Change some columns
       columns = list(
-        iv = colDef(name = "IV", maxWidth = 50),
-        beta_i = colDef(name = "Beta 1", maxWidth = 65),
-        se_i = colDef(name = "SE 1", maxWidth = 65),
-        p_i = colDef(name = "p-val 1", maxWidth = 70),
-        beta_r = colDef(name = "Beta 2", maxWidth = 65),
-        se_r = colDef(name = "SE 2", maxWidth = 65),
-        p_r = colDef(name = "p-val 2", maxWidth = 70),
-        beta_diff = colDef(name = "Beta Diff", maxWidth = 80),
-        joint_se = colDef(name = "Joint SE", maxWidth = 80),
-        test_statistic = colDef(name = "Test Statistic", maxWidth = 120),
-        stat_diff = colDef(name = "Difference", maxWidth = 95)
+        iv = colDef(name = "IV", minWidth = 105, cell = function(value) prettify_attribute_label(value)),
+        beta_i = colDef(name = "Beta 1", minWidth = 75),
+        se_i = colDef(name = "SE 1", minWidth = 70),
+        p_i = colDef(name = "p-val 1", minWidth = 80),
+        beta_r = colDef(name = "Beta 2", minWidth = 75),
+        se_r = colDef(name = "SE 2", minWidth = 70),
+        p_r = colDef(name = "p-val 2", minWidth = 80),
+        beta_diff = colDef(name = "Beta Diff", minWidth = 90),
+        joint_se = colDef(name = "Joint SE", minWidth = 90),
+        test_statistic = colDef(name = "Test Statistic", minWidth = 125),
+        stat_diff = colDef(name = "Difference", minWidth = 105)
       ),
-      style = list(maxWidth = 827)
+      style = list(minWidth = 965)
     )
   }
 }) |> bindEvent(input$compute)
@@ -504,17 +459,15 @@ output$pooled_reg_table <- renderReactable({
       bordered = TRUE,
       compact = TRUE,
       # table theming
-      theme = reactableTheme(
-        highlightColor = "#bdbdbd",
-        stripedColor = "#E0E0E0",
-        backgroundColor = "#F0F0F0",
-        borderColor = "#bdbdbd"
-      ),
+      theme = app_reactable_theme(),
       defaultColDef = colDef(
         align = "center",
-        maxWidth = 100,
+        minWidth = 105
       ),
-      style = list(maxWidth = custom_width)
+      columns = list(
+        Coefficient = colDef(cell = function(value) prettify_attribute_label(value))
+      ),
+      style = list(minWidth = custom_width)
     )
   }
 }) |> bindEvent(input$compute)
@@ -553,8 +506,8 @@ output$regression_note <- renderText({
 }) |> bindEvent(input$compute)
 
 
-# Create a violin plot with plotly and render and output it
-output$violin <- renderPlotly({
+# Create a deviation plot with plotly and render and output it
+output$deviation_plot <- renderPlotly({
   # Check data availability and status
   req(rv$dat, rv$check, rv$compute)
 
@@ -566,11 +519,11 @@ output$violin <- renderPlotly({
     # Pivot the deviation data from wide to long
     df_dev <- wide_to_long(dat = df_dev)
 
-    # Create the violin plot
-    violin_plot(
+    # Create the deviation plot
+    deviation_plot(
       dat = df_dev,
       num_profiles = length(unique(rv$dat$profile)),
-      plot_name = "violin_plot"
+      plot_name = "deviation_plot"
     )
   }
 }) |> bindEvent(input$compute)
@@ -590,18 +543,14 @@ output$icc_plot <- renderPlotly({
     icc_res <- icc_effect_plot(icc_res)
 
     # Convert ggplot plot to plotly
-    ggplotly(icc_res) |>
-      layout(showlegend = FALSE) |>
-      config(displaylogo = FALSE, modeBarButtonsToRemove = c(
-        "toggleSpikelines",
-        "hoverClosestCartesian",
-        "hoverCompareCartesian"
-      )) %>%
-      config(toImageButtonOptions = list(
-        format = "png",
-        filename = "icc_summary_plot",
-        scale = 1
-      ))
+    ggplotly(icc_res, tooltip = c("x", "y")) |>
+      layout(
+        showlegend = FALSE,
+        margin = list(l = 70, r = 25, t = 70, b = 90),
+        paper_bgcolor = "white",
+        plot_bgcolor = "white"
+      ) |>
+      app_plotly_config(filename = "icc_summary_plot")
   }
 }) |> bindEvent(input$compute)
 
@@ -620,77 +569,152 @@ output$slope_plot <- renderPlotly({
     slope_res <- slope_effect_plot(slope_res)
 
     # Convert ggplot plot to plotly
-    ggplotly(slope_res) |>
-      layout(showlegend = FALSE) |>
-      config(displaylogo = FALSE, modeBarButtonsToRemove = c(
-        "toggleSpikelines",
-        "hoverClosestCartesian",
-        "hoverCompareCartesian"
-      )) %>%
-      config(toImageButtonOptions = list(
-        format = "png",
-        filename = "icc_summary_plot",
-        scale = 1
-      ))
+    ggplotly(slope_res, tooltip = c("x", "y")) |>
+      layout(
+        showlegend = FALSE,
+        margin = list(l = 110, r = 35, t = 70, b = 70),
+        paper_bgcolor = "white",
+        plot_bgcolor = "white"
+      ) |>
+      app_plotly_config(filename = "slope_difference_plot")
   }
 }) |> bindEvent(input$compute)
 
 
 # Reset status and delete uploaded data
 observeEvent(input$reset, {
-  # If the button is pressed but no input exists
-  if (is.null(input$upload_data)) {
-    shinyalert("Error!", "No data has been uploaded yet", type = "error")
-
-    # If the button is pressed, input is true but path does not exist
-  } else if (!file.exists(input$upload_data$datapath)) {
-    shinyalert("Error!", "No data has been uploaded yet", type = "error")
-
-    # If data exists, ask user if it should be deleted
-  } else {
-    shinyalert(
-      title = "Reset App",
-      text = "Reset states and delete uploaded data?",
-      type = "warning",
-      closeOnEsc = TRUE,
-      showConfirmButton = TRUE,
-      showCancelButton = TRUE,
-      confirmButtonText = "Delete",
-      confirmButtonCol = "#df382c",
-      cancelButtonText = "Cancel",
-      callbackR = function(x) {
-        rv$reset <- x
-      }
-    )
+  if (!is.null(input$upload_data) && file.exists(input$upload_data$datapath)) {
+    file.remove(input$upload_data$datapath)
   }
-})
 
+  cleanup_session_dir(session_dir)
+  dir.create(session_dir, recursive = TRUE, showWarnings = FALSE)
 
-# Delete uploaded data and reset states
-observe({
-  # If deletion alert is true
-  if (isTRUE(rv$reset)) {
-    # Check if input path exists, delete it if this is the case
-    if (file.exists(input$upload_data$datapath)) {
-      file.remove(input$upload_data$datapath)
-    }
-
-    # Reset upload button
-    shinyjs::reset("upload_data")
-    # Reset states
-    rv$dat <- NULL
-    rv$check <- NULL
-    rv$compute <- NULL
-    rv$reset <- FALSE
-  }
+  shinyjs::reset("upload_data")
+  rv$dat <- NULL
+  rv$check <- NULL
+  rv$compute <- NULL
+  rv$reset <- FALSE
+  rv$upload_error <- NULL
+  rv$check_error <- NULL
+  rv$dropped_profiles <- FALSE
+  rv$inspect <- NULL
+  shinyjs::disable("check_data")
+  shinyjs::disable("compute")
+  shinyjs::disable("reset")
+  shinyjs::disable("show_table")
+  shinyjs::disable("show_class")
+  shinyjs::disable("download_results_xlsx")
+  shinyjs::disable("download_results_csv")
 })
 
 
 # Render top row ui
+output$inspect_row <- renderUI({
+  req(rv$inspect, rv$dat)
+
+  if (rv$inspect == "table") {
+    return(
+      div(
+        class = "result-panel inspect-panel",
+        div(
+          class = "inspect-panel-header",
+          h3("Inspect uploaded data set"),
+          actionButton("close_inspect", "Close", class = "btn-info btn-sm", icon = icon("times"))
+        ),
+        p("Use the empty boxes to search columns for values."),
+        reactableOutput("inspect_table_inline")
+      )
+    )
+  }
+
+  div(
+    class = "result-panel inspect-panel",
+    div(
+      class = "inspect-panel-header",
+      h3("Inspect data classes and types"),
+      actionButton("close_inspect", "Close", class = "btn-info btn-sm", icon = icon("times"))
+    ),
+    reactableOutput("inspect_types_inline")
+  )
+})
+
+output$inspect_table_inline <- renderReactable({
+  req(rv$dat, rv$inspect == "table")
+  reactable(rv$dat,
+    highlight = TRUE,
+    striped = TRUE,
+    bordered = TRUE,
+    compact = TRUE,
+    defaultPageSize = 10,
+    filterable = TRUE,
+    columns = attribute_column_defs(rv$dat),
+    theme = app_reactable_theme()
+  )
+})
+
+output$inspect_types_inline <- renderReactable({
+  req(rv$dat, rv$inspect == "types")
+  reactable(class_type_overview(rv$dat),
+    highlight = TRUE,
+    striped = TRUE,
+    bordered = TRUE,
+    compact = TRUE,
+    defaultPageSize = 10,
+    columns = list(
+      Variable = colDef(cell = function(value) prettify_attribute_label(value))
+    ),
+    theme = app_reactable_theme()
+  )
+})
+
+observeEvent(input$close_inspect, {
+  rv$inspect <- NULL
+})
+
+
+table_note_panel <- function(output_id) {
+  tags$details(
+    class = "table-notes",
+    tags$summary("Table notes"),
+    textOutput(output_id)
+  )
+}
+
+
+# Render top row ui
 output$top_row <- renderUI({
+  if (is.null(rv$compute) || rv$compute != "go") {
+    uploaded <- !is.null(rv$dat)
+    validated <- !is.null(rv$check) && rv$check == "okay"
+    
+    title <- if (!uploaded) {
+      "Upload Data To Begin"
+    } else if (!validated) {
+      "File Uploaded"
+    } else {
+      "Ready To Run Analysis"
+    }
+    
+    detail <- if (!uploaded) {
+      "Upload a CSV or XLSX file, then validate its structure before running the analysis."
+    } else if (!validated) {
+      "Validate the uploaded file to check required columns, numeric fields, and round/profile requirements."
+    } else {
+      "The file passed validation. Run the analysis to generate tables, downloads, and plots."
+    }
+    
+    return(
+      div(
+        class = "result-placeholder result-placeholder-state",
+        h3(title),
+        p(detail)
+      )
+    )
+  }
   
-  wellPanel(
-    style = "padding: 0.7rem; background: #FFFFFF",
+  div(
+    class = "result-panel",
     # Define tabs
     tabsetPanel(
       # First tab
@@ -698,40 +722,49 @@ output$top_row <- renderUI({
         # Show reliabilities
         "Reliabilities",
         reactableOutput("reliability_table") %>% withSpinner(type = 6, color = "#009260"),
-        textOutput("reliability_mean"),
-        textOutput("reliability_note")
+        tags$div(class = "result-summary", textOutput("reliability_mean")),
+        table_note_panel("reliability_note")
       ),
       # Second panel
       tabPanel(
         # Show slope difference tests
         "Slope Difference",
         reactableOutput("slope_diff_table") %>% withSpinner(type = 6, color = "#009260"),
-        textOutput("slope_note")
+        table_note_panel("slope_note")
       ),
       # Third panel
       tabPanel(
         # Show pooled regression results
         "Pooled Regression",
         reactableOutput("pooled_reg_table") %>% withSpinner(type = 6, color = "#009260"),
-        textOutput("regression_fit"),
-        textOutput("regression_note")
+        tags$div(class = "result-summary", textOutput("regression_fit")),
+        table_note_panel("regression_note")
       )
     )
   )
-})  |> bindEvent(input$compute)
+})
 
 
 # Render bottom row
 output$bottom_row <- renderUI({
+  if (is.null(rv$compute) || rv$compute != "go") {
+    return(
+      div(
+        class = "result-placeholder result-placeholder-secondary",
+        h3("Plots"),
+        p("Deviation, ICC summary, and slope-difference plots appear here after the analysis runs.")
+      )
+    )
+  }
   
-  wellPanel(
-    style = "padding: 0.7rem; background: #FFFFFF",
+  div(
+    class = "result-panel result-panel-plots",
     tabsetPanel(
       # First tab
       tabPanel(
-        # Show violin plot
-        "Violin Plot",
-        plotlyOutput("violin") %>% withSpinner(type = 6, color = "#009260")
+        # Show deviation plot
+        "Deviation Plot",
+        plotlyOutput("deviation_plot") %>% withSpinner(type = 6, color = "#009260")
       ),
       # Second panel
       tabPanel(
@@ -747,4 +780,4 @@ output$bottom_row <- renderUI({
       )
     )
   )
-})  |> bindEvent(input$compute)
+})

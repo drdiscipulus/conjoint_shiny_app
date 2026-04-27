@@ -11,7 +11,6 @@
 library(shiny) # Shiny package
 library(shinyjs) # Used for reset functionality
 library(shinycssloaders) # Used loading animations
-library(shinyalert) # Used to create popup alerts
 library(bslib) # Used for theming
 library(tidyverse) # Used for data wrangling and manipulation
 library(reactable) # Interactive tables
@@ -22,10 +21,18 @@ library(psych) # Used to calculate ICC values
 library(sandwich) # For calculating robust standard errors
 library(lmtest) # For calculating robust standard errors
 library(parameters) # To obtain robust standard errors
-library(plotly) # To create violin plots
+library(plotly) # Interactive plots
 library(viridis) # Provides additional color schemes
 library(vroom) # Reading and writing .csv files
 library(openxlsx) # Read and write .xlsx files
+options(shiny.maxRequestSize = 5 * 1024^2)
+source("R/upload_validation.R") # Upload validation and limits
+source("R/session_files.R") # Session-specific temp files
+source("R/result_exports.R") # Result export helpers
+source("R/ui_labels.R") # UI label helpers
+source("R/ui_components.R") # Shared UI components and themes
+source("R/alias_diagnostics.R") # Two-way interaction alias diagnostics
+source("R/interaction_coverage.R") # N-level interaction coverage diagnostics
 source("functions_factorial.R") # Source functions
 source("functions_reliability.R") # Source functions
 source("custom_corr_plot.R") # Source functions
@@ -35,7 +42,7 @@ options(shiny.useragg = FALSE)
 custom_theme <- bs_theme(
   version = 5, primary = "#009260", secondary = "#7F8990", base_font = "Arial",
   code_font = font_google("Roboto Mono"), `enable-gradients` = FALSE,
-  `enable-transitions` = FALSE, `enable-shadows` = TRUE, bootswatch = "united"
+  `enable-transitions` = FALSE, `enable-shadows` = TRUE
 )
 
 # Define UI for application that draws a histogram
@@ -48,23 +55,9 @@ ui <- fluidPage(
 
   # Set theme
   theme = custom_theme,
-
-  # Remove margin from navbar title
-  tags$style(HTML(".navbar-nav > li > a, .navbar-brand{margin-right:auto}")),
-  # Set bottom margin of navbar to 20px
-  tags$style(HTML(".navbar, .navbar:not(.fixed-bottom):not(.navbar-fixed-bottom):not(.navbar-fixed-bottom){margin-bottom: 15px;}")),
-  # Set left padding of input column to zero to make it flush
-  tags$style(HTML(".col-sm-2, element {padding-left: 0px; padding-right: 15px;}")),
-  # Set right padding of main panel columns to zero to make it flush
-  tags$style(HTML(".col-sm-10, element {padding-right: 0px;}")),
-  # Customize the themeing of the active tabpanels
-  tags$style(HTML(".nav-tabs > li.active > a {background-color: #009260; color: #fff; border-color: #B6B6B6}")),
-  # Fit modals to content
-  tags$style(type = "text/css", ".modal-dialog { width: fit-content !important; }"),
-  # Change slider color
-  tags$style(HTML(".irs--single .irs--shiny .irs-from, .irs--shiny .irs-to, .irs--shiny .irs-single {color: #fff;text-shadow: none; padding: 1px 3px; background-color: #009260;border-radius: 3px;font-size: 11px;line-height: 1.333;}")),
-  tags$style(HTML(".irs--shiny .irs-bar {background: #009260;}")),
-  tags$style(HTML(".irs--shiny .irs-bar {top: 25px;height: 8px;border-top: 1px solid #009260;	border-bottom: 1px solid #009260;background: #009260;}")),
+  tags$head(
+    tags$link(rel = "stylesheet", type = "text/css", href = "app.css")
+  ),
 
 
   ###################### Layout ################################################
@@ -73,15 +66,15 @@ ui <- fluidPage(
   navbarPage(
     # Set title and add banner at top right
     title = div(
-      "Conjoint Studies",
+      "Conjoint Companion",
       img(
         src = "index.png",
-        height = "40px",
-        style = "position: absolute; right: 10px; top:7.5px;"
+        height = "34px",
+        class = "navbar-logo-lockup"
       )
     ),
     # Set browser title
-    windowTitle = "Conjoint Studies",
+    windowTitle = "Conjoint Companion",
 
     ###################### Tabs ################################################
 

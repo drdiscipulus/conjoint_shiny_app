@@ -1,0 +1,3 @@
+request,success,n_profiles,message
+automatic run-size search for att_1:att_2 and att_1:att_3 clear,FALSE,NA,The required interactions cannot be accomodated clear of aliasing in 16 runs with resolution IV or higher.
+explicit 32-run search for att_1:att_2 and att_1:att_3 clear,TRUE,32,success

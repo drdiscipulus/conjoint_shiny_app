@@ -2,28 +2,25 @@
 
 ## Upload function
 file_upload <- function(input) {
-  # Store upload path and name values
-  input_file <- input
-  extension <- tools::file_ext(input_file$name)
-  filepath <- input_file$datapath
+  res <- try({
+    upload_info <- validate_upload_file(input)
+    filepath <- upload_info$datapath
 
-  # If statement with file extension condition for selection
-  if (extension == "csv") {
-    # Try to read file
-    res <- try(
-      # Read .csv file
-      vroom::vroom(filepath, na = c("", "NA")),
-      silent = TRUE
-    )
-  } else if (extension == "xlsx") {
-    # Try to read file
-    res <- try(
-      # Read .xlsx file
-      openxlsx::read.xlsx(filepath, na.strings = c("", "NA"))
-    )
-  } else {
-    res <- NULL
-  }
+    if (upload_info$extension == "csv") {
+      dat <- vroom::vroom(filepath, na = c("", "NA"), show_col_types = FALSE)
+    } else if (upload_info$extension == "xlsx") {
+      sheet_names <- openxlsx::getSheetNames(filepath)
+      if (length(sheet_names) != 1L) {
+        stop("Excel uploads must contain exactly one worksheet.", call. = FALSE)
+      }
+      dat <- openxlsx::read.xlsx(filepath, na.strings = c("", "NA"))
+    } else {
+      stop("Only .csv and .xlsx files are accepted.", call. = FALSE)
+    }
+
+    validate_upload_dimensions(dat)
+    dat
+  }, silent = TRUE)
 
   # Return
   return(res)
@@ -376,7 +373,7 @@ pooled_regression <- function(dat) {
 
 # Plots
 
-## Violin Plots
+## Deviation Plots
 
 ### Response Deviations
 
@@ -438,7 +435,7 @@ compute_deviation <- function(dat) {
 
 # This function takes a data set as an input and pivots it from wide to long,
 # so that there is an ID column, a profile column, and a deviation column.
-# This format is required to create a violin plot.
+# This format is required to create the deviation plot.
 wide_to_long <- function(dat) {
   # Pivot the data frame from wide to long
   dat <- dat |>
@@ -449,63 +446,59 @@ wide_to_long <- function(dat) {
 }
 
 
-### Create Violin Plot
+### Create Deviation Plot
 
 # This function requires a data set, the number of profiles and the
-# height of the plot, and its name, as inputs and creates a violin plot.
-violin_plot <- function(dat, num_profiles, plot_name) {
+# height of the plot, and its name, as inputs and creates a box plot with
+# jittered observations.
+deviation_plot <- function(dat, num_profiles, plot_name) {
   # Profile names as factor with ordered levels to preserve order
   dat$profile <- factor(dat$profile, levels = unique(dat$profile))
-  # Custom text styling for axis labels
-  t1 <- list(
-    family = "Times New Roman",
-    color = "black",
-    face = "bold",
-    size = 16
-  )
-  # Custom text styling for axis labels
-  t2 <- list(
-    family = "Times New Roman",
-    color = "black",
-    size = 20
-  )
-  # Create violin plot with plotly
+  plot_font <- list(family = "Arial", color = "#17211d", size = 13)
+  axis_title_font <- list(family = "Arial", color = "#17211d", size = 15)
+
+  # Create box plot with jittered points. This better matches the discrete
+  # response deviations than a smoothed density plot.
   p <- plot_ly(dat,
+    x = ~profile,
     y = ~deviation,
     color = ~profile,
-    type = "violin",
-    colors = viridis_pal(option = "C")(num_profiles),
-    box = list(visible = T, line = list(color = "dimgrey")),
-    meanline = list(visible = T, color = "black"),
-    bandwith = 2
+    type = "box",
+    colors = viridis_pal(option = "C", direction = -1)(num_profiles),
+    boxpoints = "all",
+    jitter = 0.42,
+    pointpos = 0,
+    marker = list(size = 5, opacity = 0.46, line = list(width = 0)),
+    line = list(color = "#17211d", width = 1),
+    fillcolor = "rgba(0, 146, 96, 0.16)",
+    hovertemplate = paste(
+      "<b>%{x}</b>",
+      "<br>Deviation: %{y}",
+      "<extra></extra>"
+    )
   ) |>
-    layout(font = t1) |>
-    layout(paper_bgcolor = "white") |>
-    layout(plot_bgcolor = "transparent") |>
-    layout(yaxis = list(
-      title = list(text = "<b>Deviation Magnitude Distribution</b>", font = t2),
-      gridcolor = "lightgrey",
-      zerolinecolor = "grey"
-    )) |>
-    layout(xaxis = list(
-      categoryarray = ~profile,
-      categoryorder = "array"
-    )) |>
-    layout(xaxis = list(
-      title = list(text = "<b>Profile Level</b>", font = t2),
-      gridcolor = "#ffff", zerolinecolor = "#ffff"
-    )) |>
-    layout(showlegend = FALSE) |>
-    config(displaylogo = FALSE, modeBarButtonsToRemove = c(
-      "toggleSpikelines",
-      "hoverClosestCartesian",
-      "hoverCompareCartesian"
-    )) |>
-    config(toImageButtonOptions = list(
-      format = "png",
-      filename = plot_name,
-      scale = 1
-    ))
+    layout(
+      font = plot_font,
+      paper_bgcolor = "white",
+      plot_bgcolor = "white",
+      margin = list(l = 70, r = 25, t = 30, b = 80),
+      showlegend = FALSE,
+      yaxis = list(
+        title = list(text = "Replication minus initial response", font = axis_title_font),
+        gridcolor = "#d8dfdc",
+        zerolinecolor = "#7f8990",
+        zerolinewidth = 1.5
+      ),
+      xaxis = list(
+        title = list(text = "Profile", font = axis_title_font),
+        categoryarray = levels(dat$profile),
+        categoryorder = "array",
+        tickangle = -35,
+        gridcolor = "#ffffff",
+        zerolinecolor = "#ffffff"
+      )
+    ) |>
+    app_plotly_config(filename = plot_name)
   # Return plot
   return(p)
 }
@@ -530,21 +523,27 @@ icc_effect_plot <- function(dat) {
       ymax = icc_upper
     )
   ) +
-    geom_pointrange() +
-    geom_text(aes(label = ICC), family = "Times New Roman", nudge_x = 0.28, size = 5) +
+    geom_hline(yintercept = c(0.5, 0.75), color = "#d8dfdc", linewidth = 0.35) +
+    geom_pointrange(color = "#009260", linewidth = 0.55, fatten = 2) +
+    geom_text(aes(label = ICC), family = "Arial", nudge_x = 0.28, size = 3.8, color = "#17211d") +
     labs(
-      title = paste0("ICC Values -- Profiles 1-", length(dat$profile)),
-      subtitle = "95% Confidence Interval As Vertical Line",
+      title = "ICC(3,k) by Profile",
+      subtitle = "Vertical lines show 95% confidence intervals",
       x = NULL,
-      y = "Intraclass Correlation Coefficients"
+      y = "ICC(3,k)"
     ) +
-    theme_minimal() +
+    theme_minimal(base_family = "Arial", base_size = 12) +
     theme(
-      text = element_text(family = "Times New Roman"),
-      plot.title = element_text(face = "bold", size = 16),
-      axis.title.y = element_text(size = 16, face = "bold"),
-      axis.text.x = element_text(size = 14, color = "black"),
-      axis.text.y = element_text(size = 14, color = "black")
+      plot.background = element_rect(fill = "white", color = NA),
+      panel.background = element_rect(fill = "white", color = NA),
+      panel.grid.major.x = element_blank(),
+      panel.grid.minor = element_blank(),
+      panel.grid.major.y = element_line(color = "#d8dfdc", linewidth = 0.35),
+      plot.title = element_text(face = "bold", size = 15, color = "#17211d"),
+      plot.subtitle = element_text(size = 11, color = "#5f6b66"),
+      axis.title.y = element_text(size = 12, color = "#17211d"),
+      axis.text.x = element_text(size = 10, color = "#17211d", angle = 35, hjust = 1),
+      axis.text.y = element_text(size = 10, color = "#17211d")
     )
 
   # Return plot
@@ -556,26 +555,45 @@ icc_effect_plot <- function(dat) {
 
 # This function creates a slope difference effect plot
 slope_effect_plot <- function(dat) {
+  dat <- dat |>
+    mutate(
+      iv = prettify_attribute_label(iv),
+      direction = if_else(test_statistic >= 0, "Different", "Not different"),
+      label_hjust = if_else(test_statistic >= 0, -0.15, 1.15)
+    )
+
   # Create the plot
-  plot <- ggplot(data = dat, aes(x = iv, y = test_statistic)) +
-    geom_point() +
-    geom_text(aes(label = test_statistic), family = "Times New Roman", nudge_x = 0.25, size = 5) +
+  plot <- ggplot(data = dat, aes(x = reorder(iv, test_statistic), y = test_statistic, fill = direction)) +
+    geom_col(width = 0.62) +
+    geom_text(aes(label = test_statistic, hjust = label_hjust), family = "Arial", size = 3.6, color = "#17211d") +
     coord_flip() +
-    geom_hline(yintercept = 0, linewidth = 2) +
+    geom_hline(yintercept = 0, linewidth = 0.6, color = "#17211d") +
+    scale_fill_manual(values = c("Different" = "#009260", "Not different" = "#b8c4bf")) +
     labs(
-      title = "Slope Difference Test Results: Statistically Significant at Zero or Higher",
-      subtitle = "No Statistically Significant Difference for Test Statistic Below Zero",
+      title = "Slope Difference Test",
+      subtitle = "Values at or above zero indicate a statistically meaningful slope difference",
       y = "Test Statistic",
-      x = "Independent Variables"
+      x = NULL
     ) +
-    theme_minimal() +
+    theme_minimal(base_family = "Arial", base_size = 12) +
     theme(
-      text = element_text(family = "Times New Roman"),
-      plot.title = element_text(face = "bold", size = 16),
-      axis.title.x = element_text(size = 16, face = "bold"),
-      axis.title.y = element_text(size = 16, face = "bold"),
-      axis.text.x = element_text(size = 14, color = "black"),
-      axis.text.y = element_text(size = 14, color = "black")
+      plot.background = element_rect(fill = "white", color = NA),
+      panel.background = element_rect(fill = "white", color = NA),
+      panel.grid.major.y = element_blank(),
+      panel.grid.minor = element_blank(),
+      panel.grid.major.x = element_line(color = "#d8dfdc", linewidth = 0.35),
+      legend.position = "none",
+      plot.title = element_text(face = "bold", size = 15, color = "#17211d"),
+      plot.subtitle = element_text(size = 11, color = "#5f6b66"),
+      axis.title.x = element_text(size = 12, color = "#17211d"),
+      axis.text.x = element_text(size = 10, color = "#17211d"),
+      axis.text.y = element_text(size = 10, color = "#17211d")
+    ) +
+    expand_limits(
+      y = c(
+        min(dat$test_statistic, na.rm = TRUE) - 0.15,
+        max(dat$test_statistic, na.rm = TRUE) + 0.15
+      )
     )
 
   # Return plot
