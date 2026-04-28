@@ -12,3 +12,8 @@ README_files/
 *.7z
 dev/*_files/
 dev/*.html
+dev/
+*AUDIT*.md
+*audit*.md
+.codex/
+.agents/

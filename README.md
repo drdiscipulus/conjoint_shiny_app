@@ -40,8 +40,6 @@ specific bug is identified and covered by regression tests.
   app still sources directly.
 - `tests/` contains regression and helper tests, including fixtures generated
   from the bundled demo data.
-- `docs/` contains maintenance, security/privacy, regression-testing, and
-  baseline notes.
 - `demo_data.csv` and `demo_data.xlsx` are public sample files for trying the
   reliability workflow.
 
@@ -126,13 +124,11 @@ temporary directory. The app registers cleanup at session end and removes
 session-generated files on reset. User-provided filenames are used only for
 display/format checks, not for internal paths.
 
-See `docs/SECURITY_AND_PRIVACY.md` for operational notes for internet-facing
-deployment.
-
 ## Maintenance
 
-See `docs/MAINTENANCE.md` for the current file structure, design-generation
-boundaries, and safe-change checklist.
+This repository is maintained occasionally and conservatively. The statistical
+workflow should remain stable unless a specific bug is identified and covered by
+tests.
 
 ## Citation
 
