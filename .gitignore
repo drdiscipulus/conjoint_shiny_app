@@ -2,3 +2,13 @@
 .Rhistory
 .RData
 .Ruserdata
+Rplots.pdf
+test-results/
+README.html
+README_files/
+*.zip
+*.tar.gz
+*.tgz
+*.7z
+dev/*_files/
+dev/*.html
