@@ -1,4 +1,4 @@
-# Conjoint Companion Shiny Source
+# Conjoint Companion Shiny App
 
 This repository contains the R Shiny source code behind the companion web app
 for the paper. It is meant as an educational source overview for readers who
@@ -6,13 +6,11 @@ want to see how the publication workflow is implemented and what happens in the
 background.
 
 - Live web app: https://shiny.drdiscipulus.de/conjoint_app/
-- Desktop/offline companion app: https://github.com/drdiscipulus/conjoint_desktop_app
 - Paper: https://doi.org/10.1177/10422587231184071
 
 The repository is not intended as an active-development project or as a release
 channel. It intentionally keeps only the files needed to run the Shiny app, the
-public demo data, and documentation. Packaged downloads belong to the desktop
-companion app.
+public demo data, and documentation.
 
 ## What The App Does
 
@@ -44,11 +42,6 @@ specific bug is identified.
   line.
 - `demo_data.csv` and `demo_data.xlsx` are public sample files for trying the
   reliability workflow.
-
-This is intentionally a plain Shiny app rather than an R package. The structure
-keeps the publication companion easy to inspect and close to the deployed web
-app. Historical development scripts, test fixtures, and exploratory notebooks
-are intentionally omitted.
 
 ## Local Setup
 
@@ -135,7 +128,7 @@ Machine-readable citation metadata are available in `CITATION.cff`.
 
 ## License
 
-This project is licensed under the GNU General Public License v3.0 only. See
+This project is licensed under the GNU General Public License v3.0. See
 `LICENSE`.
 
 R Shiny app written by Jens Schueler.
