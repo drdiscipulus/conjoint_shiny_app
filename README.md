@@ -1,16 +1,18 @@
 # Conjoint Companion Shiny Source
 
-This repository contains the R Shiny source code behind the companion web app for the paper.
-It is meant as an educational source overview for readers who want to see how the
-publication workflow is implemented and what happens in the background.
+This repository contains the R Shiny source code behind the companion web app
+for the paper. It is meant as an educational source overview for readers who
+want to see how the publication workflow is implemented and what happens in the
+background.
 
 - Live web app: https://shiny.drdiscipulus.de/conjoint_app/
 - Desktop/offline companion app: https://github.com/drdiscipulus/conjoint_desktop_app
 - Paper: https://doi.org/10.1177/10422587231184071
 
 The repository is not intended as an active-development project or as a release
-channel. The Shiny source is provided for code inspection, review, and learning.
-Packaged downloads belong to the desktop companion app.
+channel. It intentionally keeps only the files needed to run the Shiny app, the
+public demo data, and documentation. Packaged downloads belong to the desktop
+companion app.
 
 ## What The App Does
 
@@ -23,7 +25,7 @@ The app supports two publication-related workflows:
 
 The statistical workflow is treated as a protected baseline. Maintenance should
 avoid changing formulas, output definitions, or interpretation logic unless a
-specific bug is identified and covered by regression tests.
+specific bug is identified.
 
 ## How The App Is Built
 
@@ -38,14 +40,15 @@ specific bug is identified and covered by regression tests.
 - `functions_factorial.R`, `functions_reliability.R`, and `custom_corr_plot.R`
   contain the older workflow-specific statistical and plotting helpers that the
   app still sources directly.
-- `tests/` contains regression and helper tests, including fixtures generated
-  from the bundled demo data.
+- `scripts/run_app.R` is a small launcher for running the app from the command
+  line.
 - `demo_data.csv` and `demo_data.xlsx` are public sample files for trying the
   reliability workflow.
 
 This is intentionally a plain Shiny app rather than an R package. The structure
 keeps the publication companion easy to inspect and close to the deployed web
-app.
+app. Historical development scripts, test fixtures, and exploratory notebooks
+are intentionally omitted.
 
 ## Local Setup
 
@@ -56,7 +59,7 @@ install.packages(c(
   "shiny", "shinyjs", "shinycssloaders", "bslib",
   "tidyverse", "reactable", "FrF2", "DoE.base", "broom", "psych",
   "sandwich", "lmtest", "parameters", "plotly", "viridis", "vroom",
-  "openxlsx", "prismatic", "testthat"
+  "openxlsx", "prismatic"
 ))
 ```
 
@@ -68,22 +71,11 @@ This repository documents dependencies but does not pin them with `renv`.
 Rscript scripts/run_app.R
 ```
 
-## Check The Source
+From R, the same app can be started with:
 
-```sh
-Rscript scripts/check_app.R
+```r
+shiny::runApp(".")
 ```
-
-The check script reports missing full-app packages and runs the available
-regression/security tests when their dependencies are installed.
-
-Optional browser-level smoke check:
-
-```sh
-Rscript scripts/ui_smoke_test.R
-```
-
-This script skips cleanly if the optional `shinytest2` package is not installed.
 
 ## Input Format
 
@@ -127,8 +119,7 @@ display/format checks, not for internal paths.
 ## Maintenance
 
 This repository is maintained occasionally and conservatively. The statistical
-workflow should remain stable unless a specific bug is identified and covered by
-tests.
+workflow should remain stable unless a specific bug is identified.
 
 ## Citation
 
