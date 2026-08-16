@@ -196,18 +196,37 @@ oa_candidate_names <- function(attributes, rgt3, prefilter_gr_below_four = FALSE
 }
 
 
-find_resolution_four_oa <- function(attributes, att_names, candidate_names) {
+find_minimum_resolution_oa <- function(attributes, att_names, candidate_names, minimum_resolution) {
   for (candidate_name in candidate_names) {
     array <- load_oa_catalogue_entry(candidate_name)
     design <- oa.design(array, nlevels = attributes, columns = "min3", factor.names = att_names)
     resolution <- GR(design, digits = 2)$GR
 
-    if (resolution >= 4) {
+    if (resolution >= minimum_resolution) {
       return(design)
     }
   }
 
   NULL
+}
+
+
+resolution_five_candidate_names <- function(attributes, full_factorial_size, max_candidates = 100) {
+  show.oas(
+    nlevels = attributes,
+    regular = "all",
+    GRgt3 = "all",
+    Rgt3 = TRUE,
+    show = 0,
+    parents.only = FALSE,
+    showGRs = TRUE,
+    showmetrics = TRUE,
+    digits = 2
+  ) |>
+    filter(lineage == "", GR >= 5, nruns < full_factorial_size) |>
+    arrange(nruns) |>
+    slice_head(n = max_candidates) |>
+    pull(name)
 }
 
 
@@ -230,7 +249,7 @@ get_n_level_fractional <- function(attributes, criterion, type = NULL) {
       rgt3 = FALSE,
       prefilter_gr_below_four = TRUE
     )
-    design <- find_resolution_four_oa(attributes, att_names, candidate_names)
+    design <- find_minimum_resolution_oa(attributes, att_names, candidate_names, 4)
 
     # Look up resolution 4 arrays if res is null
     if (is.null(design)) {
@@ -239,11 +258,29 @@ get_n_level_fractional <- function(attributes, criterion, type = NULL) {
         rgt3 = TRUE,
         prefilter_gr_below_four = FALSE
       )
-      design <- find_resolution_four_oa(attributes, att_names, candidate_names)
+      design <- find_minimum_resolution_oa(attributes, att_names, candidate_names, 4)
     }
 
     if (is.null(design)) {
       stop("No array exists.", call. = FALSE)
+    }
+
+    res <- format_n_level_design_result(design)
+  }
+
+  if (criterion == "two-way-clear") {
+    candidate_names <- resolution_five_candidate_names(
+      attributes = attributes,
+      full_factorial_size = prod(attributes)
+    )
+    design <- find_minimum_resolution_oa(attributes, att_names, candidate_names, 5)
+
+    if (is.null(design)) {
+      design <- fac.design(
+        nlevels = attributes,
+        factor.names = att_names,
+        replications = 1
+      )
     }
 
     res <- format_n_level_design_result(design)
@@ -253,31 +290,39 @@ get_n_level_fractional <- function(attributes, criterion, type = NULL) {
 }
 
 
+get_encoded_correlation_matrix <- function(data) {
+  if (!"design" %in% class(data)) {
+    data <- data2design(data)
+  }
+
+  data <- change.contr(data, contrasts = "contr.XuWu")
+  data <- data[, names(factor.names(data))]
+  model_data <- model.matrix(~ .^2, data)
+  model_data <- model_data[, colnames(model_data) != "(Intercept)", drop = FALSE]
+
+  if (ncol(model_data) < 2) {
+    stop("At least two encoded effects are required for a correlation heatmap.", call. = FALSE)
+  }
+
+  cor_dat <- abs(cor(model_data))
+  diag(cor_dat) <- NA
+  cor_dat
+}
+
+
 # Function to obtain attribute correlations
 get_cor_table <- function(data) {
-  
-    # Try to obtain correlation matrix
-    cor_dat <- try(custom_corr_plot(data, main.only = FALSE, three = FALSE), silent = TRUE)
+  cor_dat <- try(custom_corr_plot(data, main.only = FALSE, three = FALSE), silent = TRUE)
 
-    # Evaluate result
-    if (inherits(cor_dat, "try-error")) {
-      # Set null if no correlation matrix is obtainable
-      cor_dat <- NULL
+  if (inherits(cor_dat, "try-error") || is.null(cor_dat)) {
+    cor_dat <- get_encoded_correlation_matrix(data)
+  }
 
-      # If there is a matrix, transform it into a long format data frame
-    } else {
-      cor_dat <- as.data.frame(cor_dat)
-      cor_dat <- rownames_to_column(cor_dat)
-      cor_dat <- pivot_longer(cor_dat, cols = !rowname, names_to = "variables", values_to = "correlation")
-      cor_dat <- cor_dat |>
-      #  mutate(rowname = str_sub(rowname, end = -2)) |>
-      #  mutate(variables = str_sub(variables, end = -2)) |> 
-        mutate(correlation = round(correlation, 1))
+  cor_dat <- as.data.frame(cor_dat)
+  cor_dat <- rownames_to_column(cor_dat)
+  cor_dat <- pivot_longer(cor_dat, cols = !rowname, names_to = "variables", values_to = "correlation")
+  cor_dat <- cor_dat |>
+    mutate(correlation = round(correlation, 1))
 
-     # str_sub(cor_dat$rowname, 6, 6) <- ""
-     # str_sub(cor_dat$variables, 6, 6) <- ""
-    }
-
-  # Return
   return(cor_dat)
 }
