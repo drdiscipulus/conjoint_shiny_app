@@ -7,6 +7,7 @@ background.
 
 - Live web app: https://shiny.drdiscipulus.de/conjoint_app/
 - Paper: https://doi.org/10.1177/10422587231184071
+- Desktop app: https://github.com/drdiscipulus/conjoint_desktop_app
 
 The repository is not intended as an active-development project or as a release
 channel. It intentionally keeps only the files needed to run the Shiny app, the
@@ -14,16 +15,12 @@ public demo data, and documentation.
 
 ## What The App Does
 
-The app supports two publication-related workflows:
+The app supports two conjoint-related workflows:
 
 1. Generate full and fractional factorial designs for conjoint experiments.
 2. Run the test-retest reliability workflow described in the accompanying paper:
    *Test-Retest Reliability in Metric Conjoint Experiments: A New Workflow to
    Evaluate Confidence in Model Results*.
-
-The statistical workflow is treated as a protected baseline. Maintenance should
-avoid changing formulas, output definitions, or interpretation logic unless a
-specific bug is identified.
 
 ## How The App Is Built
 
